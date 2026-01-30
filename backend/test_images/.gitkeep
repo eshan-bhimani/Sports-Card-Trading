@@ -1,0 +1,13 @@
+# Place test images in this directory
+#
+# Example images to test:
+# - sample_card.jpg
+# - rotated_card.jpg
+# - multiple_cards.jpg
+# - poor_lighting.jpg
+#
+# For best results:
+# - Use good lighting
+# - Place card on contrasting background
+# - Ensure entire card is visible
+# - Card should take up at least 5% of image area
