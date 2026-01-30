@@ -1,66 +1,180 @@
-# Sports-Card-Trading
-AI-powered sports card trading platform automating convention sales and collection management with intelligent pricing, auto-bidding, and image processing
+# Baseball Card Auto-Cropping & Upload Tool
 
-**Automating the sports card trading ecosystem** — from convention floor sales to intelligent portfolio management.
+**MVP: Automated card cropping from photos with Google Photos integration**
 
-This is a full-stack trading platform that reduces friction in the fragmented sports card market by automating dealer workflows, implementing AI-powered pricing strategies, and streamlining card photography and listing processes.
+A mobile-first solution that eliminates the manual work of cropping hundreds of baseball card photos. Built to solve the real pain point of sports card collectors who spend hours preparing images for PSA Registry and other platforms.
 
 ---
 
 ## 🎯 Problem Statement
 
-The sports card trading market is highly fragmented across platforms (eBay, Fanatics, PWCC, COMC, PSA Registry), creating significant operational overhead for dealers and collectors:
+Sports card collectors face a tedious workflow when digitizing their collections:
 
-- **3-week lag** for professional card scans from Fanatics
-- Manual photo cropping and uploading across multiple platforms
-- Platform-specific auction mechanics requiring constant monitoring
-- No unified pricing strategy across marketplaces
-- Inefficient dealer-collector matching at large conventions
+- **Manual cropping** of hundreds of card photos takes hours
+- **Inconsistent results** from hand-cropping on mobile devices
+- **3-week lag** for professional card scans from services like Fanatics
+- **Repetitive uploads** across multiple platforms (PSA Registry, eBay, etc.)
 
-This platform addresses these pain points through intelligent automation and unified platform architecture.
-
----
-
-## 🏗️ Architecture
-
-**Frontend:** React (Vercel) — Progressive Web App supporting iOS/Android  
-**Backend:** Python (Flask/FastAPI) + Java microservices (Render)  
-**Computer Vision:** OpenCV + TensorFlow for automated card detection/cropping  
-**Integrations:** Google Photos API, Google Cloud Platform, PSA Registry, eBay API  
+This tool automates the image processing pipeline, reducing hours of manual work to minutes.
 
 ---
 
-## 🚀 Core Features (In Development)
+## 🏗️ MVP Architecture
 
-### Convention Side
-- **AI-Powered Image Processing** — Automated card cropping with Google Photos integration, eliminating manual photo preparation
-- **Want-List Management** — Real-time dealer-collector matching system for convention floor interactions
-- **Bulk Upload Pipeline** — Multi-platform listing automation with intelligent photo processing
+**Frontend:** React Native with Expo — True mobile app for camera integration
+**Backend:** Python FastAPI (Render) — RESTful API for image processing
+**Computer Vision:** OpenCV — Automated card detection & perspective correction
+**Integration:** Google Photos API — OAuth-based upload with metadata  
 
-### General Collection Side  
-- **Configurable Pricing Engine** — Rules-based pricing strategies with platform-specific bid logic
-- **Auction Monitoring & Auto-Bidding** — Real-time auction tracking with automated bidding considering buyer premiums
-- **Portfolio Analytics** — Collection valuation and market trend analysis
+---
+
+## 🚀 MVP Features
+
+### Phase 1: Image Processing Backend ✅ COMPLETED
+- ✅ **Automatic Card Detection** — OpenCV-based contour detection with confidence scoring
+- ✅ **Perspective Correction** — Handles rotated cards, straightens automatically
+- ✅ **REST API** — `/api/crop-image` endpoint with comprehensive error handling
+- ✅ **Render Deployment** — Production-ready with health checks and monitoring
+
+### Phase 2: Google Photos Integration (In Progress)
+- ⏳ **OAuth 2.0 Flow** — Secure Google account connection
+- ⏳ **Photo Upload** — Automated upload with metadata (card name, year, set)
+- ⏳ **Album Management** — Auto-create and organize albums
+
+### Phase 3: React Native Mobile App (Planned)
+- 📱 **Camera Integration** — Take photos directly in-app
+- 📱 **Preview & Review** — See cropped result before uploading
+- 📱 **Batch Processing** — Process multiple cards efficiently
+- 📱 **Metadata Entry** — Optional fields for card details
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Languages:** Python, Java, JavaScript (React)
-- **Frameworks:** Flask, FastAPI, React
-- **ML/CV:** OpenCV, TensorFlow
-- **Cloud:** Google Cloud Platform (Photos API), Render, Vercel
-- **APIs:** REST, OAuth 2.0
+- **Backend:** Python 3.11, FastAPI, Uvicorn
+- **Computer Vision:** OpenCV, Pillow, NumPy
+- **Mobile:** React Native, Expo (camera, auth, image-picker)
+- **Cloud:** Render (backend hosting), Google Cloud Platform (Photos API)
+- **Authentication:** OAuth 2.0, Google Auth Libraries
 
 ---
 
-## 📊 Current Status
+## 📊 Project Status
 
-Active development focusing on:
-- Image cropping automation with Google Photos integration
-- Pricing strategy engine with multi-platform support
-- Auto-bidding system with platform-specific auction mechanics
-- Mobile-first PWA experience
+**Phase 1 Complete (Backend API)** ✅
+- Fully functional card detection & cropping API
+- Deployed to Render with health monitoring
+- Comprehensive documentation and testing tools
+- [Backend Documentation](backend/README.md)
+
+**Phase 2 In Progress (Google Integration)** ⏳
+- OAuth flow implementation
+- Google Photos API integration
+- Upload with metadata support
+
+**Phase 3 Planned (Mobile App)** 📱
+- React Native app development
+- Camera & gallery integration
+- End-to-end user flow
+
+## 🚀 Quick Start
+
+### Backend API
+
+```bash
+cd backend
+
+# Set up environment
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Run server
+python app.py
+```
+
+Server runs at http://localhost:8000
+- API Docs: http://localhost:8000/docs
+- Health Check: http://localhost:8000/health
+
+### Test the API
+
+```bash
+# Using test script
+python test_api.py test_images/your_card.jpg
+
+# Or using curl
+curl -X POST "http://localhost:8000/api/crop-image" \
+  -F "file=@your_card.jpg"
+```
+
+See [Backend README](backend/README.md) for detailed setup and deployment instructions.
+
+## 📁 Project Structure
+
+```
+Sports-Card-Trading/
+├── backend/                    # Python FastAPI backend
+│   ├── app.py                 # Main application
+│   ├── config.py              # Configuration settings
+│   ├── requirements.txt       # Python dependencies
+│   ├── render.yaml            # Render deployment config
+│   ├── test_api.py            # Test script
+│   ├── utils/
+│   │   └── image_processor.py # OpenCV card detection logic
+│   ├── test_images/           # Test images directory
+│   ├── README.md              # Backend documentation
+│   └── RENDER_DEPLOYMENT.md   # Deployment guide
+├── mobile/                     # React Native app (Phase 3)
+│   └── (coming soon)
+└── README.md                   # This file
+```
+
+## 🔬 How It Works
+
+### Card Detection Algorithm
+
+1. **Preprocessing**
+   - Convert to grayscale
+   - Gaussian blur for noise reduction
+   - Adaptive thresholding + Canny edge detection
+
+2. **Contour Analysis**
+   - Find external contours in image
+   - Filter by size (min 5% of image area)
+   - Filter by shape (4-6 vertices for rectangles)
+
+3. **Confidence Scoring**
+   - Aspect ratio matching (standard card: 2.5:3.5)
+   - Area validation (not too small/large)
+   - Vertex count (prefer clean rectangles)
+
+4. **Perspective Transform**
+   - Four-point perspective correction
+   - Automatic rotation to portrait
+   - Output straightened, cropped card
+
+### API Response Example
+
+```json
+{
+  "success": true,
+  "cropped_image": "data:image/jpeg;base64,...",
+  "confidence": 0.87,
+  "message": "Card successfully detected and cropped",
+  "original_size": [1920, 1080],
+  "cropped_size": [500, 700]
+}
+```
+
+## 🎯 Future Enhancements (Post-MVP)
+
+- **Batch Processing** — Process multiple cards in one session
+- **Card Recognition** — ML-based card identification
+- **OCR Metadata** — Auto-extract player name, year, set
+- **PSA Registry Integration** — Direct upload to PSA
+- **eBay/Fanatics Upload** — Multi-platform listing automation
+- **Offline Queue** — Process photos without internet, sync later
 
 ---
 
