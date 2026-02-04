@@ -14,15 +14,18 @@ class CardCropper:
 
     # Standard baseball card aspect ratio (2.5" x 3.5" = 0.714)
     CARD_ASPECT_RATIO = 2.5 / 3.5
-    ASPECT_RATIO_TOLERANCE = 0.25  # Allow variance for different card types
+    ASPECT_RATIO_TOLERANCE = 0.30  # Allow variance for different card types
 
     # Minimum card area (percentage of image)
     MIN_CARD_AREA_RATIO = 0.01  # Card should be at least 1% of image
     MAX_CARD_AREA_RATIO = 1.00  # Allow cards that fill the frame
 
+    # Margin inset percentage (shrink detected region to exclude borders)
+    MARGIN_INSET_PERCENT = 0.02  # 2% inset on each side
+
     def __init__(self):
         """Initialize the card cropper."""
-        logger.info("CardCropper initialized with improved PSA case detection")
+        logger.info("CardCropper initialized with inner card detection (no perspective distortion)")
 
     def crop_card(self, image_bytes: bytes) -> Dict:
         """
@@ -56,10 +59,10 @@ class CardCropper:
             original_h, original_w = image.shape[:2]
             logger.info(f"Processing image of size {original_w}x{original_h}")
 
-            # Detect card with improved algorithm
-            card_contour, confidence = self._detect_card_contour_advanced(image)
+            # Detect card with improved algorithm (returns bounding box, not contour)
+            card_bbox, confidence, is_screenshot = self._detect_card_contour_advanced(image)
 
-            if card_contour is None:
+            if card_bbox is None:
                 return {
                     "success": False,
                     "message": "No card detected in image. Please ensure the card is clearly visible.",
@@ -67,8 +70,9 @@ class CardCropper:
                     "original_size": [original_w, original_h]
                 }
 
-            # Extract and straighten card
-            cropped_card = self._extract_card(image, card_contour)
+            # Extract card using axis-aligned bounding box (no perspective distortion)
+            # For screenshots, don't apply margin inset (borders already tight)
+            cropped_card = self._extract_card_bbox(image, card_bbox, apply_margin=not is_screenshot)
 
             if cropped_card is None:
                 return {
@@ -100,40 +104,65 @@ class CardCropper:
                 "error": str(e)
             }
 
-    def _detect_card_contour_advanced(self, image: np.ndarray) -> Tuple[Optional[np.ndarray], float]:
+    def _detect_card_contour_advanced(self, image: np.ndarray) -> Tuple[Optional[List[int]], float, bool]:
         """
-        Advanced card detection optimized for PSA cases.
-        Detects the actual card inside the case, not the case itself.
+        Detect the card or PSA slab in the image.
+        For PSA cases: detects the FULL slab (label + holder + card).
+        For raw cards: detects just the card.
+        Uses axis-aligned bounding box to avoid perspective distortion.
 
         Args:
             image: Input image (BGR format)
 
         Returns:
-            Tuple of (contour, confidence_score)
+            Tuple of (bounding_box as [x, y, w, h], confidence_score, is_screenshot)
         """
-        # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-        # Determine if image is mostly dark or light
+        height, width = image.shape[:2]
+        image_area = height * width
         mean_brightness = np.mean(gray)
 
-        # For dark backgrounds (PSA cases): light cards on dark backgrounds
-        if mean_brightness < 100:
+        # Check if this looks like a screenshot (has UI elements at top)
+        is_screenshot = self._detect_screenshot_ui(image)
+        logger.info(f"Screenshot detection: {is_screenshot}")
+
+        # Check for wood/desk background (brown tones)
+        has_wood_background = self._detect_wood_background(hsv)
+        logger.info(f"Wood background detection: {has_wood_background}")
+
+        # Determine detection strategy based on background and image type
+        is_dark_background = mean_brightness < 100
+
+        # Detection strategy based on background type
+        if has_wood_background:
+            # Wood/desk background: mask out brown tones and find card
+            logger.info("Using wood background detection strategy")
+            combined = self._detect_card_on_wood(image, gray, hsv)
+        elif is_dark_background:
+            # Dark background (typical PSA photo): threshold to find bright objects
             _, thresh = cv2.threshold(gray, 40, 255, cv2.THRESH_BINARY)
+            edges = cv2.Canny(gray, 50, 150)
+            combined = cv2.bitwise_or(thresh, edges)
         else:
-            # For light backgrounds: use edge detection
-            thresh = cv2.Canny(gray, 30, 100)
-            # Dilate edges to connect them
-            kernel = np.ones((3, 3), np.uint8)
-            thresh = cv2.dilate(thresh, kernel, iterations=2)
+            # Light background: use edge detection with adaptive approach
+            # Adaptive thresholding handles local variations better
+            adaptive_thresh = cv2.adaptiveThreshold(
+                gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                cv2.THRESH_BINARY_INV, 11, 2
+            )
 
-        # Also add Canny edges as supplement
-        edges = cv2.Canny(gray, 50, 150)
+            # Standard edge detection
+            edges = cv2.Canny(gray, 30, 100)
 
-        # Combine threshold and edges
-        combined = cv2.bitwise_or(thresh, edges)
+            # Look for shadows (often darker areas around card edges)
+            _, shadow_thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
 
-        # Morphological operations to clean up
+            combined = cv2.bitwise_or(edges, shadow_thresh)
+            combined = cv2.bitwise_or(combined, adaptive_thresh)
+
+        # Clean up the mask
         kernel = np.ones((5, 5), np.uint8)
         combined = cv2.morphologyEx(combined, cv2.MORPH_CLOSE, kernel, iterations=2)
         combined = cv2.morphologyEx(combined, cv2.MORPH_OPEN, kernel, iterations=1)
@@ -141,107 +170,235 @@ class CardCropper:
         # Find contours
         contours, hierarchy = cv2.findContours(
             combined,
-            cv2.RETR_TREE,  # Use RETR_TREE to get hierarchy info
+            cv2.RETR_EXTERNAL,  # Only outermost contours (the full slab, not inner card)
             cv2.CHAIN_APPROX_SIMPLE
         )
 
         if not contours:
             logger.warning("No contours found in image")
-            return None, 0.0
+            return None, 0.0, is_screenshot
 
-        image_area = image.shape[0] * image.shape[1]
         candidates = []
 
-        # Analyze all contours with hierarchy
-        for idx, contour in enumerate(contours):
-            # Get contour properties
+        for contour in contours:
             area = cv2.contourArea(contour)
             area_ratio = area / image_area
 
             # Skip contours that are too small or too large
-            if area_ratio < self.MIN_CARD_AREA_RATIO or area_ratio > self.MAX_CARD_AREA_RATIO:
+            if area_ratio < self.MIN_CARD_AREA_RATIO or area_ratio > 0.98:
                 continue
 
-            # Approximate contour to polygon
-            peri = cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
-
-            # Get bounding rectangle
+            # Get axis-aligned bounding rectangle (no rotation = no distortion)
             x, y, w, h = cv2.boundingRect(contour)
 
-            # Calculate aspect ratio (width/height normalized to 0-1 range)
+            # Calculate aspect ratio
             aspect_ratio = min(w, h) / max(w, h) if max(w, h) > 0 else 0
-
-            # Check if it's rectangular (4 corners) or can be approximated as such
-            is_rectangular = 4 <= len(approx) <= 8
-
-            if not is_rectangular:
-                continue
-
-            # Calculate how well it matches card aspect ratio
             aspect_diff = abs(aspect_ratio - self.CARD_ASPECT_RATIO)
 
-            # Skip if aspect ratio is way off
+            # Skip if aspect ratio is way off (allow more tolerance for PSA slabs)
             if aspect_diff > self.ASPECT_RATIO_TOLERANCE:
                 continue
 
-            # Check if contour has a parent (nested inside another contour)
-            # This helps identify cards inside cases
-            has_parent = hierarchy[0][idx][3] != -1 if hierarchy is not None else False
+            # Approximate contour to check if rectangular
+            peri = cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
 
-            # Calculate solidity (how "filled" the shape is)
+            if not (4 <= len(approx) <= 12):
+                continue
+
+            # Calculate solidity
             hull = cv2.convexHull(contour)
             hull_area = cv2.contourArea(hull)
             solidity = area / hull_area if hull_area > 0 else 0
 
-            # Calculate confidence score
+            # Calculate confidence
             confidence = self._calculate_confidence_advanced(
                 area_ratio=area_ratio,
                 aspect_ratio=aspect_ratio,
                 num_vertices=len(approx),
                 solidity=solidity,
-                has_parent=has_parent
+                has_parent=False
             )
 
             candidates.append({
-                "contour": contour,
+                "bbox": [x, y, w, h],
                 "confidence": confidence,
-                "area": area,
                 "area_ratio": area_ratio,
                 "aspect_ratio": aspect_ratio,
-                "vertices": len(approx),
-                "solidity": solidity,
-                "has_parent": has_parent,
-                "x": x,
-                "y": y,
-                "w": w,
-                "h": h
+                "solidity": solidity
             })
-
-            logger.debug(
-                f"Candidate: confidence={confidence:.3f}, "
-                f"area_ratio={area_ratio:.3f}, "
-                f"aspect_ratio={aspect_ratio:.3f}, "
-                f"vertices={len(approx)}, "
-                f"solidity={solidity:.3f}, "
-                f"nested={has_parent}"
-            )
 
         if not candidates:
             logger.warning("No valid card candidates found")
-            return None, 0.0
+            return None, 0.0, is_screenshot
 
-        # Sort by confidence and return best match
+        # Select the best candidate by confidence
         best_candidate = max(candidates, key=lambda x: x["confidence"])
 
         logger.info(
             f"Best match: confidence={best_candidate['confidence']:.3f}, "
             f"aspect_ratio={best_candidate['aspect_ratio']:.3f}, "
-            f"area_ratio={best_candidate['area_ratio']:.3f}, "
-            f"nested={best_candidate['has_parent']}"
+            f"area_ratio={best_candidate['area_ratio']:.3f}"
         )
 
-        return best_candidate["contour"], best_candidate["confidence"]
+        return best_candidate["bbox"], best_candidate["confidence"], is_screenshot
+
+    def _detect_screenshot_ui(self, image: np.ndarray) -> bool:
+        """
+        Detect if the image appears to be a screenshot from a phone/app.
+        Looks for common UI patterns like status bars at the top.
+
+        Args:
+            image: Input image (BGR format)
+
+        Returns:
+            True if screenshot UI elements are detected
+        """
+        height, width = image.shape[:2]
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        # Check top portion for status bar (usually dark or has specific patterns)
+        top_strip_height = int(height * 0.05)  # Top 5%
+        top_strip = gray[:top_strip_height, :]
+
+        # Status bars often have consistent brightness across the strip
+        top_std = np.std(top_strip)
+        top_mean = np.mean(top_strip)
+
+        # Check for "X" button or close icon in top-left area (common in apps)
+        top_left = gray[:int(height * 0.08), :int(width * 0.15)]
+        top_left_edges = cv2.Canny(top_left, 50, 150)
+        edge_density = np.sum(top_left_edges > 0) / top_left_edges.size
+
+        # Check for page indicators like "1 of 2" (centered text in top area)
+        top_center = gray[:int(height * 0.08), int(width * 0.3):int(width * 0.7)]
+        top_center_std = np.std(top_center)
+
+        # Screenshot indicators:
+        # 1. Low variation in status bar area (solid color)
+        # 2. Edge patterns suggesting UI buttons
+        # 3. High variation suggesting text/icons
+        is_screenshot = (
+            (top_std < 40 and top_mean > 20) or  # Solid status bar
+            (edge_density > 0.02) or  # UI button detected
+            (top_center_std > 30)  # Text in center top
+        )
+
+        return is_screenshot
+
+    def _detect_content_area(self, image: np.ndarray, gray: np.ndarray) -> np.ndarray:
+        """
+        For screenshots, detect the main content display area where the card is shown.
+        This helps exclude UI elements from detection.
+
+        Args:
+            image: Input image (BGR format)
+            gray: Grayscale version
+
+        Returns:
+            Binary mask highlighting potential card boundaries
+        """
+        height, width = image.shape[:2]
+
+        # Look for rectangular content area by finding strong horizontal/vertical edges
+        # Use Sobel to find directional edges
+        sobel_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+        sobel_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+
+        # Find strong edges
+        abs_sobel_x = np.uint8(np.absolute(sobel_x))
+        abs_sobel_y = np.uint8(np.absolute(sobel_y))
+
+        # Threshold to get strong edges
+        _, thresh_x = cv2.threshold(abs_sobel_x, 30, 255, cv2.THRESH_BINARY)
+        _, thresh_y = cv2.threshold(abs_sobel_y, 30, 255, cv2.THRESH_BINARY)
+
+        # Combine horizontal and vertical edges
+        combined = cv2.bitwise_or(thresh_x, thresh_y)
+
+        # Use morphology to connect edges
+        kernel_h = np.ones((1, 15), np.uint8)
+        kernel_v = np.ones((15, 1), np.uint8)
+
+        dilated_h = cv2.dilate(thresh_x, kernel_h, iterations=1)
+        dilated_v = cv2.dilate(thresh_y, kernel_v, iterations=1)
+
+        combined = cv2.bitwise_or(dilated_h, dilated_v)
+
+        return combined
+
+    def _detect_wood_background(self, hsv: np.ndarray) -> bool:
+        """
+        Detect if the image has a significant wood/desk background.
+        Wood typically has brown tones (orange-brown hue, medium saturation).
+
+        Args:
+            hsv: Image in HSV color space
+
+        Returns:
+            True if wood background is detected
+        """
+        # Brown/wood colors in HSV
+        # Hue: 10-30 (orange-brown range)
+        # Saturation: 30-200 (noticeable but not super saturated)
+        # Value: 30-180 (medium brightness, not too dark or bright)
+        wood_mask = cv2.inRange(hsv, np.array([10, 30, 30]), np.array([30, 200, 180]))
+
+        # Calculate percentage of image that is wood-colored
+        wood_ratio = np.sum(wood_mask > 0) / wood_mask.size
+
+        logger.info(f"Wood color ratio: {wood_ratio:.2%}")
+
+        # If more than 15% of image is wood-colored, consider it a wood background
+        return wood_ratio > 0.15
+
+    def _detect_card_on_wood(self, image: np.ndarray, gray: np.ndarray, hsv: np.ndarray) -> np.ndarray:
+        """
+        Detect card boundaries when card is on a wood/desk surface.
+        Uses color filtering to exclude wood and find the card.
+
+        Args:
+            image: Input image (BGR format)
+            gray: Grayscale version
+            hsv: HSV version
+
+        Returns:
+            Binary mask for contour detection
+        """
+        # Create mask for wood/brown areas to EXCLUDE
+        wood_mask = cv2.inRange(hsv, np.array([8, 25, 25]), np.array([35, 200, 180]))
+
+        # Slightly expand wood mask
+        kernel_expand = np.ones((5, 5), np.uint8)
+        wood_mask = cv2.dilate(wood_mask, kernel_expand, iterations=1)
+
+        # Invert to get non-wood areas (potential card regions)
+        non_wood_mask = cv2.bitwise_not(wood_mask)
+
+        # Edge detection
+        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        edges = cv2.Canny(blurred, 50, 150)
+
+        # Also look for the plastic case - it's usually lighter/reflective
+        # Detect high brightness areas (plastic case reflection)
+        _, bright_mask = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
+
+        # Detect blue/gray tones (the card itself has blue elements)
+        blue_mask = cv2.inRange(hsv, np.array([90, 20, 30]), np.array([130, 255, 200]))
+
+        # Combine: non-wood edges + bright areas + blue card areas
+        combined = cv2.bitwise_or(edges, bright_mask)
+        combined = cv2.bitwise_or(combined, blue_mask)
+
+        # Apply non-wood mask
+        combined = cv2.bitwise_and(combined, non_wood_mask)
+
+        # Clean up
+        kernel = np.ones((7, 7), np.uint8)
+        combined = cv2.morphologyEx(combined, cv2.MORPH_CLOSE, kernel, iterations=3)
+        combined = cv2.morphologyEx(combined, cv2.MORPH_OPEN, kernel, iterations=1)
+
+        return combined
 
     def _calculate_confidence_advanced(
         self,
@@ -329,112 +486,124 @@ class CardCropper:
 
         return min(1.0, confidence)
 
-    def _extract_card(self, image: np.ndarray, contour: np.ndarray) -> Optional[np.ndarray]:
+    def _extract_card_bbox(self, image: np.ndarray, bbox: List[int], apply_margin: bool = True) -> Optional[np.ndarray]:
         """
-        Extract and straighten the card from the image using perspective transform.
+        Extract card using axis-aligned bounding box (no perspective distortion).
+        Optionally applies a small margin inset to ensure clean edges without background.
+        Auto-rotates sideways cards to upright (portrait) orientation.
 
         Args:
             image: Original image
-            contour: Card contour
+            bbox: Bounding box as [x, y, w, h]
+            apply_margin: Whether to apply margin inset (False for screenshots where borders are already tight)
 
         Returns:
-            Cropped and straightened card image
+            Cropped card image (rotated to upright if needed)
         """
-        # Get the four corner points
-        peri = cv2.arcLength(contour, True)
-        approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
+        x, y, w, h = bbox
+        img_h, img_w = image.shape[:2]
 
-        if len(approx) < 4:
-            logger.warning(f"Insufficient points for perspective transform: {len(approx)}")
-            # Fallback: use bounding rectangle
-            x, y, w, h = cv2.boundingRect(contour)
-            return image[y:y+h, x:x+w]
+        if apply_margin:
+            # Apply margin inset to exclude any border/background
+            margin_x = int(w * self.MARGIN_INSET_PERCENT)
+            margin_y = int(h * self.MARGIN_INSET_PERCENT)
+        else:
+            # No margin for screenshots - use exact bounding box
+            margin_x = 0
+            margin_y = 0
+            logger.info("Screenshot mode: not applying margin inset")
 
-        # Get corner points
-        points = approx.reshape(len(approx), 2) if len(approx) == 4 else self._get_four_corners(approx)
-        points = self._order_points(points)
+        # Calculate new coordinates with margin
+        x1 = max(0, x + margin_x)
+        y1 = max(0, y + margin_y)
+        x2 = min(img_w, x + w - margin_x)
+        y2 = min(img_h, y + h - margin_y)
 
-        # Calculate dimensions of the card
-        width_top = np.linalg.norm(points[1] - points[0])
-        width_bottom = np.linalg.norm(points[2] - points[3])
-        height_left = np.linalg.norm(points[3] - points[0])
-        height_right = np.linalg.norm(points[2] - points[1])
+        # Ensure we have a valid region
+        if x2 <= x1 or y2 <= y1:
+            logger.warning("Invalid crop region after margin inset, using original bbox")
+            x1, y1, x2, y2 = x, y, x + w, y + h
 
-        max_width = int(max(width_top, width_bottom))
-        max_height = int(max(height_left, height_right))
+        # Crop the card
+        cropped = image[y1:y2, x1:x2]
+        crop_h, crop_w = cropped.shape[:2]
 
-        # Ensure portrait orientation (height > width for standard cards)
-        if max_width > max_height:
-            max_width, max_height = max_height, max_width
+        logger.info(f"Cropped from ({x1},{y1}) to ({x2},{y2}), size: {crop_w}x{crop_h}")
 
-        # Define destination points for perspective transform
-        dst_points = np.array([
-            [0, 0],
-            [max_width - 1, 0],
-            [max_width - 1, max_height - 1],
-            [0, max_height - 1]
-        ], dtype=np.float32)
+        # Auto-rotate if image is sideways (landscape when it should be portrait)
+        # Standard cards should be portrait (height > width)
+        if crop_w > crop_h:
+            logger.info(f"Detected sideways orientation ({crop_w}x{crop_h}), rotating to upright")
+            cropped = self._rotate_to_upright(cropped)
 
-        # Get perspective transform matrix
-        matrix = cv2.getPerspectiveTransform(points.astype(np.float32), dst_points)
+        return cropped
 
-        # Apply perspective transform
-        warped = cv2.warpPerspective(image, matrix, (max_width, max_height))
-
-        return warped
-
-    def _get_four_corners(self, points: np.ndarray) -> np.ndarray:
+    def _rotate_to_upright(self, image: np.ndarray) -> np.ndarray:
         """
-        Extract four corner points from a polygon with more than 4 vertices.
+        Rotate a sideways card image to upright (portrait) orientation.
+        Detects PSA label position - handles both types:
+        1. White background with RED border (modern PSA)
+        2. Fully DARK BLUE label (older PSA)
+        The PSA label should be at the TOP of the final image.
 
         Args:
-            points: Array of points
+            image: Cropped card image in landscape orientation
 
         Returns:
-            Array of 4 corner points
+            Rotated image in portrait orientation
         """
-        # Find the convex hull
-        hull = cv2.convexHull(points)
+        h, w = image.shape[:2]
 
-        # Simplify to 4 points
-        peri = cv2.arcLength(hull, True)
-        approx = cv2.approxPolyDP(hull, 0.04 * peri, True)
+        # Check narrow strips at left and right edges for PSA label
+        # The PSA label is a concentrated bar at one end
+        strip_width = int(w * 0.12)  # Look at the outer 12% on each side
+        left_strip = image[:, :strip_width]
+        right_strip = image[:, w - strip_width:]
 
-        if len(approx) == 4:
-            return approx.reshape(4, 2)
+        # Convert to HSV for color detection
+        left_hsv = cv2.cvtColor(left_strip, cv2.COLOR_BGR2HSV)
+        right_hsv = cv2.cvtColor(right_strip, cv2.COLOR_BGR2HSV)
 
-        # If still more than 4, use extreme points
-        points_2d = points.reshape(-1, 2)
-        top_left = points_2d[np.argmin(points_2d.sum(axis=1))]
-        bottom_right = points_2d[np.argmax(points_2d.sum(axis=1))]
-        top_right = points_2d[np.argmax(points_2d[:, 0] - points_2d[:, 1])]
-        bottom_left = points_2d[np.argmin(points_2d[:, 0] - points_2d[:, 1])]
+        # TYPE 1: Red-bordered PSA label (white background + red border)
+        # Red in HSV: Hue 0-10 or 160-180, high saturation
+        red_mask_left = cv2.inRange(left_hsv, np.array([0, 120, 100]), np.array([10, 255, 255])) + \
+                        cv2.inRange(left_hsv, np.array([160, 120, 100]), np.array([180, 255, 255]))
+        red_mask_right = cv2.inRange(right_hsv, np.array([0, 120, 100]), np.array([10, 255, 255])) + \
+                         cv2.inRange(right_hsv, np.array([160, 120, 100]), np.array([180, 255, 255]))
 
-        return np.array([top_left, top_right, bottom_right, bottom_left])
+        left_red = np.sum(red_mask_left > 0)
+        right_red = np.sum(red_mask_right > 0)
 
-    def _order_points(self, pts: np.ndarray) -> np.ndarray:
-        """
-        Order points in top-left, top-right, bottom-right, bottom-left order.
+        # TYPE 2: Dark blue PSA label (fully navy/dark blue)
+        # Navy blue in HSV: Hue 105-125 (narrower to avoid green/teal)
+        # Lower value range to catch dark navy (30-150)
+        blue_mask_left = cv2.inRange(left_hsv, np.array([105, 70, 30]), np.array([125, 255, 150]))
+        blue_mask_right = cv2.inRange(right_hsv, np.array([105, 70, 30]), np.array([125, 255, 150]))
 
-        Args:
-            pts: Array of 4 points
+        left_blue = np.sum(blue_mask_left > 0)
+        right_blue = np.sum(blue_mask_right > 0)
 
-        Returns:
-            Ordered array of points
-        """
-        rect = np.zeros((4, 2), dtype=np.float32)
+        # Calculate scores - PSA label side should have significant red OR blue
+        # The red/blue should be concentrated (part of the label bar)
+        left_psa_score = max(left_red, left_blue * 1.5)  # Weight blue slightly higher
+        right_psa_score = max(right_red, right_blue * 1.5)
 
-        # Top-left has smallest sum, bottom-right has largest sum
-        s = pts.sum(axis=1)
-        rect[0] = pts[np.argmin(s)]
-        rect[2] = pts[np.argmax(s)]
+        logger.info(f"PSA detection - Left: red={left_red}, blue={left_blue}, score={left_psa_score:.0f}")
+        logger.info(f"PSA detection - Right: red={right_red}, blue={right_blue}, score={right_psa_score:.0f}")
 
-        # Top-right has smallest difference, bottom-left has largest difference
-        diff = np.diff(pts, axis=1)
-        rect[1] = pts[np.argmin(diff)]
-        rect[3] = pts[np.argmax(diff)]
+        # Determine rotation direction based on where the PSA label is
+        # PSA label should end up at the TOP after rotation
+        # CLOCKWISE: left -> top, COUNTERCLOCKWISE: right -> top
+        if right_psa_score > left_psa_score:
+            # PSA label is on right, rotate counter-clockwise to put it at top
+            logger.info("PSA label detected on right, rotating 90° counter-clockwise")
+            rotated = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        else:
+            # PSA label is on left, rotate clockwise to put it at top
+            logger.info("PSA label detected on left, rotating 90° clockwise")
+            rotated = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
 
-        return rect
+        return rotated
 
     def _image_to_base64(self, image: np.ndarray) -> str:
         """
