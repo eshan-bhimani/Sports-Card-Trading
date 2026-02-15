@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
 
 interface CardEntry {
   name: string;
@@ -124,6 +124,9 @@ const STAR_CARDS: CardEntry[] = [
   },
 ];
 
+// Duplicate the cards so the marquee can loop seamlessly
+const MARQUEE_CARDS = [...STAR_CARDS, ...STAR_CARDS];
+
 function CardPlaceholder({ card, index }: { card: CardEntry; index: number }) {
   const initials = card.name
     .split(" ")
@@ -191,72 +194,77 @@ function CardPlaceholder({ card, index }: { card: CardEntry; index: number }) {
   );
 }
 
+// Width of one card + gap (200px card + 16px gap on mobile, 220px + 16px on sm+)
+const CARD_SLOT_WIDTH = 216; // mobile default
+const CARD_SLOT_WIDTH_SM = 236;
+const TOTAL_SET_WIDTH = STAR_CARDS.length * CARD_SLOT_WIDTH;
+const TOTAL_SET_WIDTH_SM = STAR_CARDS.length * CARD_SLOT_WIDTH_SM;
+const SLIDE_DURATION = 40; // seconds for full set to scroll past
+
 export default function CardShowcaseSlider() {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const controls = useAnimationControls();
   const [isPaused, setIsPaused] = useState(false);
-  const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [isSm, setIsSm] = useState(false);
+  const xRef = useRef(0);
 
-  const cardWidth = 236; // card width + gap
-  const totalCards = STAR_CARDS.length;
-
-  const scrollTo = useCallback(
-    (index: number) => {
-      const track = trackRef.current;
-      if (!track) return;
-      const clampedIndex = Math.max(0, Math.min(index, totalCards - 1));
-      setActiveIndex(clampedIndex);
-      const scrollLeft =
-        clampedIndex * cardWidth -
-        (track.clientWidth / 2 - cardWidth / 2);
-      track.scrollTo({ left: scrollLeft, behavior: "smooth" });
-    },
-    [totalCards]
-  );
-
-  const next = useCallback(() => {
-    scrollTo((activeIndex + 1) % totalCards);
-  }, [activeIndex, scrollTo, totalCards]);
-
-  const prev = useCallback(() => {
-    scrollTo((activeIndex - 1 + totalCards) % totalCards);
-  }, [activeIndex, scrollTo, totalCards]);
-
-  // Auto-advance
+  // Detect sm breakpoint
   useEffect(() => {
-    if (isPaused) return;
-    autoplayRef.current = setInterval(() => {
-      next();
-    }, 3500);
-    return () => {
-      if (autoplayRef.current) clearInterval(autoplayRef.current);
-    };
-  }, [isPaused, next]);
+    const mq = window.matchMedia("(min-width: 640px)");
+    setIsSm(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsSm(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
-  // Track scroll position to update dots
+  const totalWidth = isSm ? TOTAL_SET_WIDTH_SM : TOTAL_SET_WIDTH;
+
+  // Start or resume the infinite scroll animation
+  const startScroll = useCallback(() => {
+    // Calculate remaining fraction to maintain consistent speed
+    const remaining = totalWidth - Math.abs(xRef.current % totalWidth);
+    const remainingFraction = remaining / totalWidth;
+
+    controls.start({
+      x: [xRef.current, xRef.current - remaining, -totalWidth],
+      transition: {
+        x: {
+          duration: SLIDE_DURATION * remainingFraction,
+          ease: "linear",
+          repeat: Infinity,
+          repeatType: "loop" as const,
+          repeatDelay: 0,
+        },
+      },
+    });
+  }, [controls, totalWidth]);
+
+  // Pause / resume
   useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const onScroll = () => {
-      const center = track.scrollLeft + track.clientWidth / 2;
-      const idx = Math.round(center / cardWidth);
-      setActiveIndex(Math.max(0, Math.min(idx, totalCards - 1)));
-    };
-    track.addEventListener("scroll", onScroll, { passive: true });
-    return () => track.removeEventListener("scroll", onScroll);
-  }, [totalCards]);
+    if (isPaused) {
+      controls.stop();
+    } else {
+      startScroll();
+    }
+  }, [isPaused, startScroll, controls]);
+
+  // Track current x so we can resume from the right place
+  const handleUpdate = useCallback((latest: Record<string, number>) => {
+    if (typeof latest.x === "number") {
+      xRef.current = latest.x;
+    }
+  }, []);
 
   return (
-    <section className="relative z-10 px-4 py-8 sm:py-12">
+    <section className="relative z-10 py-8 sm:py-12">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.6 }}
-        className="max-w-4xl mx-auto"
+        className="max-w-5xl mx-auto"
       >
         {/* Section header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-6 px-4">
           <h2 className="text-lg sm:text-xl font-bold text-white/90">
             Premium Card Showcase
           </h2>
@@ -267,69 +275,32 @@ export default function CardShowcaseSlider() {
 
         {/* Dashboard frame */}
         <div
-          className="glass-card rounded-2xl p-4 sm:p-6"
+          className="glass-card rounded-2xl py-6 sm:py-8 mx-4 overflow-hidden"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onTouchStart={() => setIsPaused(true)}
           onTouchEnd={() => setIsPaused(false)}
         >
-          {/* Carousel */}
-          <div className="relative">
-            {/* Left arrow */}
-            <button
-              onClick={prev}
-              aria-label="Previous card"
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full glass-strong flex items-center justify-center text-white/60 hover:text-white transition-colors -ml-2 sm:-ml-4"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
+          {/* Fade edges */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-12 sm:w-20 z-10 bg-gradient-to-r from-black/40 to-transparent rounded-l-2xl" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 sm:w-20 z-10 bg-gradient-to-l from-black/40 to-transparent rounded-r-2xl" />
 
-            {/* Right arrow */}
-            <button
-              onClick={next}
-              aria-label="Next card"
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full glass-strong flex items-center justify-center text-white/60 hover:text-white transition-colors -mr-2 sm:-mr-4"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-
-            {/* Track */}
-            <div
-              ref={trackRef}
-              className="carousel-track px-6 sm:px-8"
-            >
-              {STAR_CARDS.map((card, i) => (
-                <div key={card.name} className="carousel-slide">
-                  <motion.div
-                    whileHover={{ scale: 1.03 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
-                    <CardPlaceholder card={card} index={i} />
-                  </motion.div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Pagination dots */}
-          <div className="flex items-center justify-center gap-1.5 mt-4">
-            {STAR_CARDS.map((card, i) => (
-              <button
-                key={card.name}
-                onClick={() => scrollTo(i)}
-                aria-label={`Go to card ${i + 1}`}
-                className={`rounded-full transition-all duration-300 ${
-                  i === activeIndex
-                    ? "w-6 h-2 bg-[#C8102E]"
-                    : "w-2 h-2 bg-white/20 hover:bg-white/40"
-                }`}
-              />
+          {/* Marquee track */}
+          <motion.div
+            className="flex gap-4 w-max"
+            animate={controls}
+            onUpdate={handleUpdate}
+          >
+            {MARQUEE_CARDS.map((card, i) => (
+              <motion.div
+                key={`${card.name}-${i}`}
+                whileHover={{ scale: 1.04 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <CardPlaceholder card={card} index={i % STAR_CARDS.length} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </motion.div>
     </section>
