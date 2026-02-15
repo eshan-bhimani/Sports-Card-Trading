@@ -522,17 +522,29 @@ class CardCropper:
         # Ensure we have a valid region
         if x2 <= x1 or y2 <= y1:
             logger.warning("Invalid crop region after margin inset, using original bbox")
-            x1, y1, x2, y2 = x, y, x + w, y + h
+            x1 = max(0, x)
+            y1 = max(0, y)
+            x2 = min(img_w, x + w)
+            y2 = min(img_h, y + h)
+
+        # Validate the region is usable
+        if x2 <= x1 or y2 <= y1:
+            logger.error("Cannot produce a valid crop region")
+            return None
 
         # Crop the card
         cropped = image[y1:y2, x1:x2]
         crop_h, crop_w = cropped.shape[:2]
 
+        if crop_h == 0 or crop_w == 0:
+            logger.error(f"Crop produced degenerate image: {crop_w}x{crop_h}")
+            return None
+
         logger.info(f"Cropped from ({x1},{y1}) to ({x2},{y2}), size: {crop_w}x{crop_h}")
 
         # Auto-rotate if image is sideways (landscape when it should be portrait)
         # Standard cards should be portrait (height > width)
-        if crop_w > crop_h:
+        if crop_w > crop_h and min(crop_w, crop_h) >= 10:
             logger.info(f"Detected sideways orientation ({crop_w}x{crop_h}), rotating to upright")
             cropped = self._rotate_to_upright(cropped)
 
@@ -556,7 +568,7 @@ class CardCropper:
 
         # Check narrow strips at left and right edges for PSA label
         # The PSA label is a concentrated bar at one end
-        strip_width = int(w * 0.12)  # Look at the outer 12% on each side
+        strip_width = max(1, int(w * 0.12))  # Look at the outer 12% on each side, minimum 1px
         left_strip = image[:, :strip_width]
         right_strip = image[:, w - strip_width:]
 
