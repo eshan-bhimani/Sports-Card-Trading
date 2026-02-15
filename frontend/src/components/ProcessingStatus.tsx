@@ -90,7 +90,7 @@ export default function ProcessingStatus({ state, error }: ProcessingStatusProps
       {/* Text */}
       <div className="min-w-0 flex-1">
         <p className={`font-medium text-sm ${config.color}`}>{config.label}</p>
-        <p className="text-white/40 text-xs mt-0.5 truncate">
+        <p className={`text-white/40 text-xs mt-0.5 ${state === "error" ? "" : "truncate"}`}>
           {state === "error" && error ? error : config.sublabel}
         </p>
       </div>

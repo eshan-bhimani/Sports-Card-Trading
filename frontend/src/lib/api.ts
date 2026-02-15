@@ -11,27 +11,48 @@ export interface CropImageResponse {
   cropped_size: [number, number];
 }
 
-export interface ApiError {
-  detail: string;
-}
-
 export async function cropImage(file: File): Promise<CropImageResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${API_BASE_URL}/api/crop-image`, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const error: ApiError = await response.json().catch(() => ({
-      detail: `Server error (${response.status})`,
-    }));
-    throw new Error(error.detail || `Request failed with status ${response.status}`);
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/api/crop-image`, {
+      method: "POST",
+      body: formData,
+    });
+  } catch {
+    throw new Error(
+      "Could not connect to the server. Make sure the backend is running."
+    );
   }
 
-  const data: CropImageResponse = await response.json();
+  if (!response.ok) {
+    // Try to read the FastAPI error detail
+    let message: string;
+    try {
+      const body = await response.json();
+      message = body.detail || body.message || body.error;
+    } catch {
+      // Response wasn't JSON (e.g. Next.js proxy HTML error page)
+      message = "";
+    }
+
+    if (response.status === 500 && !message) {
+      throw new Error(
+        "Backend server error. Make sure the Python backend is running on port 8000."
+      );
+    }
+
+    throw new Error(message || `Request failed (${response.status})`);
+  }
+
+  let data: CropImageResponse;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Invalid response from server.");
+  }
 
   if (!data.success) {
     throw new Error(data.message || "Image processing failed");
