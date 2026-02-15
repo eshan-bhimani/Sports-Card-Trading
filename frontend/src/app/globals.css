@@ -156,25 +156,26 @@ body {
 }
 
 /* ───────────────────────────────────────────
-   Card carousel
+   Card marquee (infinite auto-slide)
    ─────────────────────────────────────────── */
-.carousel-track {
+.marquee-track {
   display: flex;
   gap: 16px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 8px 0;
+  width: max-content;
+  animation: marquee-scroll 35s linear infinite;
 }
 
-.carousel-track::-webkit-scrollbar {
-  display: none;
+.marquee-track:hover {
+  animation-play-state: paused;
 }
 
-.carousel-slide {
-  scroll-snap-align: center;
-  flex-shrink: 0;
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 /* ───────────────────────────────────────────

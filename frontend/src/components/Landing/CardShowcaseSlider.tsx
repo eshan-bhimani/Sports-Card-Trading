@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
-import { motion, useAnimationControls } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface CardEntry {
   name: string;
@@ -124,9 +124,6 @@ const STAR_CARDS: CardEntry[] = [
   },
 ];
 
-// Duplicate the cards so the marquee can loop seamlessly
-const MARQUEE_CARDS = [...STAR_CARDS, ...STAR_CARDS];
-
 function CardPlaceholder({ card, index }: { card: CardEntry; index: number }) {
   const initials = card.name
     .split(" ")
@@ -135,18 +132,13 @@ function CardPlaceholder({ card, index }: { card: CardEntry; index: number }) {
 
   return (
     <div className="relative w-[200px] h-[280px] sm:w-[220px] sm:h-[308px] rounded-xl overflow-hidden flex-shrink-0">
-      {/* Card background — simulated card design */}
       <div
         className="absolute inset-0"
         style={{
           background: `linear-gradient(160deg, ${card.color} 0%, ${card.color}dd 40%, #0a1628 100%)`,
         }}
       />
-
-      {/* Card inner border effect */}
       <div className="absolute inset-[3px] rounded-lg border border-white/10" />
-
-      {/* Holographic shimmer overlay */}
       <div
         className="absolute inset-0 opacity-20"
         style={{
@@ -155,16 +147,12 @@ function CardPlaceholder({ card, index }: { card: CardEntry; index: number }) {
           animation: `shimmerCard${index} 3s ease-in-out infinite`,
         }}
       />
-
-      {/* Top section — team + year */}
       <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
         <span className="text-[10px] font-bold text-white/70 tracking-wider uppercase">
           {card.set}
         </span>
         <span className="text-[10px] font-bold text-white/50">{card.year}</span>
       </div>
-
-      {/* Center — Player initials avatar */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
           <span className="text-2xl sm:text-3xl font-black text-white/60">
@@ -172,8 +160,6 @@ function CardPlaceholder({ card, index }: { card: CardEntry; index: number }) {
           </span>
         </div>
       </div>
-
-      {/* Bottom info area */}
       <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-6 bg-gradient-to-t from-black/60 to-transparent">
         <p className="text-white font-bold text-sm sm:text-base leading-tight truncate">
           {card.name}
@@ -194,65 +180,8 @@ function CardPlaceholder({ card, index }: { card: CardEntry; index: number }) {
   );
 }
 
-// Width of one card + gap (200px card + 16px gap on mobile, 220px + 16px on sm+)
-const CARD_SLOT_WIDTH = 216; // mobile default
-const CARD_SLOT_WIDTH_SM = 236;
-const TOTAL_SET_WIDTH = STAR_CARDS.length * CARD_SLOT_WIDTH;
-const TOTAL_SET_WIDTH_SM = STAR_CARDS.length * CARD_SLOT_WIDTH_SM;
-const SLIDE_DURATION = 40; // seconds for full set to scroll past
-
 export default function CardShowcaseSlider() {
-  const controls = useAnimationControls();
   const [isPaused, setIsPaused] = useState(false);
-  const [isSm, setIsSm] = useState(false);
-  const xRef = useRef(0);
-
-  // Detect sm breakpoint
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 640px)");
-    setIsSm(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsSm(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  const totalWidth = isSm ? TOTAL_SET_WIDTH_SM : TOTAL_SET_WIDTH;
-
-  // Start or resume the infinite scroll animation
-  const startScroll = useCallback(() => {
-    // Calculate remaining fraction to maintain consistent speed
-    const remaining = totalWidth - Math.abs(xRef.current % totalWidth);
-    const remainingFraction = remaining / totalWidth;
-
-    controls.start({
-      x: [xRef.current, xRef.current - remaining, -totalWidth],
-      transition: {
-        x: {
-          duration: SLIDE_DURATION * remainingFraction,
-          ease: "linear",
-          repeat: Infinity,
-          repeatType: "loop" as const,
-          repeatDelay: 0,
-        },
-      },
-    });
-  }, [controls, totalWidth]);
-
-  // Pause / resume
-  useEffect(() => {
-    if (isPaused) {
-      controls.stop();
-    } else {
-      startScroll();
-    }
-  }, [isPaused, startScroll, controls]);
-
-  // Track current x so we can resume from the right place
-  const handleUpdate = useCallback((latest: Record<string, number>) => {
-    if (typeof latest.x === "number") {
-      xRef.current = latest.x;
-    }
-  }, []);
 
   return (
     <section className="relative z-10 py-8 sm:py-12">
@@ -275,7 +204,7 @@ export default function CardShowcaseSlider() {
 
         {/* Dashboard frame */}
         <div
-          className="glass-card rounded-2xl py-6 sm:py-8 mx-4 overflow-hidden"
+          className="glass-card rounded-2xl py-6 sm:py-8 mx-4 overflow-hidden relative"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onTouchStart={() => setIsPaused(true)}
@@ -285,22 +214,26 @@ export default function CardShowcaseSlider() {
           <div className="pointer-events-none absolute inset-y-0 left-0 w-12 sm:w-20 z-10 bg-gradient-to-r from-black/40 to-transparent rounded-l-2xl" />
           <div className="pointer-events-none absolute inset-y-0 right-0 w-12 sm:w-20 z-10 bg-gradient-to-l from-black/40 to-transparent rounded-r-2xl" />
 
-          {/* Marquee track */}
-          <motion.div
-            className="flex gap-4 w-max"
-            animate={controls}
-            onUpdate={handleUpdate}
+          {/* Marquee track — two identical sets side by side, CSS-animated */}
+          <div
+            className="marquee-track"
+            style={{
+              animationPlayState: isPaused ? "paused" : "running",
+            }}
           >
-            {MARQUEE_CARDS.map((card, i) => (
-              <motion.div
-                key={`${card.name}-${i}`}
-                whileHover={{ scale: 1.04 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              >
-                <CardPlaceholder card={card} index={i % STAR_CARDS.length} />
-              </motion.div>
+            {/* First set */}
+            {STAR_CARDS.map((card, i) => (
+              <div key={`a-${card.name}`} className="flex-shrink-0">
+                <CardPlaceholder card={card} index={i} />
+              </div>
             ))}
-          </motion.div>
+            {/* Duplicate set for seamless loop */}
+            {STAR_CARDS.map((card, i) => (
+              <div key={`b-${card.name}`} className="flex-shrink-0">
+                <CardPlaceholder card={card} index={i} />
+              </div>
+            ))}
+          </div>
         </div>
       </motion.div>
     </section>
