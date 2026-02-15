@@ -26,6 +26,11 @@ wheels/
 # Environment variables
 .env
 
+# Google Cloud credentials (NEVER commit these)
+gcs-service-account-key.json
+*-service-account-key.json
+*.json.bak
+
 # IDE
 .vscode/
 .idea/
