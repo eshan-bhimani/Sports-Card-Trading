@@ -1,33 +1,32 @@
 "use client";
 
-import HeroGlass from "@/components/Landing/HeroGlass";
-import CardShowcaseSlider from "@/components/Landing/CardShowcaseSlider";
-import FeatureTiles from "@/components/Landing/FeatureTiles";
-import CTASection from "@/components/Landing/CTASection";
+import BackgroundGlow from "@/components/Landing/BackgroundGlow";
+import HeroProductPanel from "@/components/Landing/HeroProductPanel";
+import MicroStoryTiles from "@/components/Landing/MicroStoryTiles";
+import ShowcaseDashboard from "@/components/Landing/ShowcaseDashboard";
+import FinalCTA from "@/components/Landing/FinalCTA";
 
 export default function Home() {
   return (
-    <div className="bg-landing min-h-dvh noise-overlay vignette">
-      {/* Animated glow blobs */}
-      <div className="glow-blob glow-blob-blue" />
-      <div className="glow-blob glow-blob-red" />
-      <div className="glow-blob glow-blob-blue-bottom" />
+    <div className="bg-landing min-h-dvh noise-overlay vignette relative">
+      {/* Layered glow blobs — background depth */}
+      <BackgroundGlow />
 
-      {/* Hero */}
-      <HeroGlass />
+      {/* Hero product panel — midground */}
+      <HeroProductPanel />
 
-      {/* Card showcase slider */}
-      <CardShowcaseSlider />
+      {/* 3-step micro-story */}
+      <MicroStoryTiles />
 
-      {/* Feature tiles */}
-      <FeatureTiles />
+      {/* Premium card showcase — foreground */}
+      <ShowcaseDashboard />
 
-      {/* Final CTA */}
-      <CTASection />
+      {/* Final CTA strip */}
+      <FinalCTA />
 
       {/* Footer */}
-      <footer className="relative z-10 px-4 pb-8 pt-4">
-        <p className="text-center text-white/20 text-xs">
+      <footer className="relative z-10 px-4 pb-6">
+        <p className="text-center text-white/15 text-[11px] tracking-wide">
           ConventionConnection &middot; Baseball Card Tools
         </p>
       </footer>
