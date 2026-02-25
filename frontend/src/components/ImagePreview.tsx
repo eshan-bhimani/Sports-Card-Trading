@@ -22,26 +22,26 @@ export default function ImagePreview({
   const showProcessed = processedUrl && !isProcessing;
 
   return (
-    <div className="w-full fade-in">
+    <div className="w-full">
       {/* Tab switcher */}
       {showProcessed && (
-        <div className="flex gap-1 p-1 glass rounded-xl mb-4 w-fit mx-auto">
+        <div className="flex gap-1 p-1 glass-hero rounded-xl mb-4 w-fit mx-auto">
           <button
             onClick={() => setActiveTab("original")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               activeTab === "original"
-                ? "bg-white/10 text-white"
-                : "text-white/40 hover:text-white/60"
+                ? "bg-white/12 text-white shadow-sm shadow-white/5"
+                : "text-white/40 hover:text-white/60 hover:bg-white/5"
             }`}
           >
             Original
           </button>
           <button
             onClick={() => setActiveTab("processed")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               activeTab === "processed"
-                ? "bg-white/10 text-white"
-                : "text-white/40 hover:text-white/60"
+                ? "bg-white/12 text-white shadow-sm shadow-white/5"
+                : "text-white/40 hover:text-white/60 hover:bg-white/5"
             }`}
           >
             Processed
@@ -50,7 +50,7 @@ export default function ImagePreview({
       )}
 
       {/* Image display */}
-      <div className="glass rounded-2xl p-3 relative overflow-hidden">
+      <div className="glass-hero rounded-2xl p-3 relative overflow-hidden">
         {/* Original image */}
         {(activeTab === "original" || !showProcessed) && (
           <div className="relative">

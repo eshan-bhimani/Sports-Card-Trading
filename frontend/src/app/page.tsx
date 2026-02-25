@@ -28,7 +28,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="relative z-10 px-4 pb-8 pt-4">
         <p className="text-center text-white/20 text-xs">
-          ConventionConnection &middot; Baseball Card Tools
+          CollectHub &middot; Baseball Card Tools
         </p>
       </footer>
     </div>

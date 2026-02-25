@@ -1,4 +1,4 @@
-# Google Cloud Storage Setup for ConventionConnection
+# Google Cloud Storage Setup for CollectHub
 
 This guide covers setting up GCS for automatic card image uploads.
 
@@ -8,8 +8,8 @@ This guide covers setting up GCS for automatic card image uploads.
 # Install gcloud CLI if you don't have it: https://cloud.google.com/sdk/docs/install
 
 # Create a project (or use an existing one)
-gcloud projects create convention-connection --name="ConventionConnection"
-gcloud config set project convention-connection
+gcloud projects create collecthub --name="CollectHub"
+gcloud config set project collecthub
 
 # Enable the Cloud Storage API
 gcloud services enable storage.googleapis.com
@@ -22,13 +22,13 @@ gcloud services enable storage.googleapis.com
 
 ```bash
 # Choose a globally unique bucket name
-gcloud storage buckets create gs://convention-connection-cards \
+gcloud storage buckets create gs://collecthub-cards \
   --location=us-central1 \
   --default-storage-class=STANDARD \
   --uniform-bucket-level-access
 
 # (Optional) Make the bucket publicly readable if you want public URLs to work:
-gcloud storage buckets add-iam-policy-binding gs://convention-connection-cards \
+gcloud storage buckets add-iam-policy-binding gs://collecthub-cards \
   --member=allUsers \
   --role=roles/storage.objectViewer
 ```
@@ -41,13 +41,13 @@ gcloud iam service-accounts create cc-card-uploader \
   --display-name="Card Uploader Service Account"
 
 # Grant it write access to the bucket
-gcloud storage buckets add-iam-policy-binding gs://convention-connection-cards \
-  --member="serviceAccount:cc-card-uploader@convention-connection.iam.gserviceaccount.com" \
+gcloud storage buckets add-iam-policy-binding gs://collecthub-cards \
+  --member="serviceAccount:cc-card-uploader@collecthub.iam.gserviceaccount.com" \
   --role="roles/storage.objectAdmin"
 
 # Download a key file (keep this secret!)
 gcloud iam service-accounts keys create gcs-service-account-key.json \
-  --iam-account=cc-card-uploader@convention-connection.iam.gserviceaccount.com
+  --iam-account=cc-card-uploader@collecthub.iam.gserviceaccount.com
 
 # IMPORTANT: Move the key file to the backend/ directory
 # It is already listed in .gitignore and will NOT be committed
@@ -61,7 +61,7 @@ Copy `.env.example` to `.env` and fill in the GCS section:
 ```bash
 # In backend/.env
 GCS_UPLOAD_ENABLED=true
-GCS_BUCKET_NAME=convention-connection-cards
+GCS_BUCKET_NAME=collecthub-cards
 GCS_CREDENTIALS_PATH=./gcs-service-account-key.json
 GCS_DEFAULT_USER_ID=admin
 GCS_SIGNED_URL_EXPIRATION_MINUTES=60
@@ -87,7 +87,7 @@ python app.py
 ### Check upload status
 ```bash
 curl http://localhost:8000/api/upload/status
-# Expected: {"enabled":true,"connected":true,"bucket":"convention-connection-cards"}
+# Expected: {"enabled":true,"connected":true,"bucket":"collecthub-cards"}
 ```
 
 ### Crop and upload in one call
@@ -119,7 +119,7 @@ with open("cropped_card.png", "rb") as f:
     # {
     #   "success": true,
     #   "blob_path": "admin/2025-01-15/abc123def_card.png",
-    #   "bucket": "convention-connection-cards",
+    #   "bucket": "collecthub-cards",
     #   "public_url": "https://storage.googleapis.com/...",
     #   "signed_url": "https://storage.googleapis.com/...?X-Goog-Signature=...",
     #   "size_bytes": 123456,
@@ -159,7 +159,7 @@ per-user Google auth later:
 ## GCS Bucket Organization
 
 ```
-convention-connection-cards/
+collecthub-cards/
 ├── admin/                    # Admin/default uploads
 │   ├── 2025-01-15/
 │   │   ├── abc123_card.png

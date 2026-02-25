@@ -19,9 +19,9 @@ export default function HeroGlass() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight"
         >
-          <span className="text-white">Convention</span>
+          <span className="text-white">Collect</span>
           <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
-            Connection
+            Hub
           </span>
         </motion.h1>
 

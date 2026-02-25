@@ -20,17 +20,19 @@ class CardCropper:
     MIN_CARD_AREA_RATIO = 0.01  # Card should be at least 1% of image
     MAX_CARD_AREA_RATIO = 1.00  # Allow cards that fill the frame
 
-    # Margin inset percentage (shrink detected region to exclude borders)
-    MARGIN_INSET_PERCENT = 0.02  # 2% inset on each side
+    # Edge padding percentage (expand detected region to keep card/case edges visible)
+    # A small outset ensures the full case edges are in frame with minimal background
+    EDGE_PADDING_PERCENT = 0.015  # 1.5% padding beyond detected edge
+    SCREENSHOT_PADDING_PERCENT = 0.02  # 2% padding for screenshots (detection tends to be tighter)
 
     def __init__(self):
         """Initialize the card cropper."""
-        logger.info("CardCropper initialized with inner card detection (no perspective distortion)")
+        logger.info("CardCropper initialized with edge-preserving detection (case edges kept visible)")
 
     def crop_card(self, image_bytes: bytes) -> Dict:
         """
         Detect and crop a baseball card from an image.
-        Optimized for cards in PSA cases - extracts just the card, not the case.
+        Preserves the full card case edges with minimal surrounding background.
 
         Args:
             image_bytes: Raw image bytes
@@ -71,8 +73,8 @@ class CardCropper:
                 }
 
             # Extract card using axis-aligned bounding box (no perspective distortion)
-            # For screenshots, don't apply margin inset (borders already tight)
-            cropped_card = self._extract_card_bbox(image, card_bbox, apply_margin=not is_screenshot)
+            # Apply edge padding to keep card/case edges visible with minimal background
+            cropped_card = self._extract_card_bbox(image, card_bbox, is_screenshot=is_screenshot)
 
             if cropped_card is None:
                 return {
@@ -486,16 +488,17 @@ class CardCropper:
 
         return min(1.0, confidence)
 
-    def _extract_card_bbox(self, image: np.ndarray, bbox: List[int], apply_margin: bool = True) -> Optional[np.ndarray]:
+    def _extract_card_bbox(self, image: np.ndarray, bbox: List[int], is_screenshot: bool = False) -> Optional[np.ndarray]:
         """
         Extract card using axis-aligned bounding box (no perspective distortion).
-        Optionally applies a small margin inset to ensure clean edges without background.
+        Applies a small outset padding beyond the detected edge so the full card/case
+        edges remain visible with minimal surrounding background.
         Auto-rotates sideways cards to upright (portrait) orientation.
 
         Args:
             image: Original image
             bbox: Bounding box as [x, y, w, h]
-            apply_margin: Whether to apply margin inset (False for screenshots where borders are already tight)
+            is_screenshot: Whether this is a screenshot (uses slightly larger padding)
 
         Returns:
             Cropped card image (rotated to upright if needed)
@@ -503,25 +506,26 @@ class CardCropper:
         x, y, w, h = bbox
         img_h, img_w = image.shape[:2]
 
-        if apply_margin:
-            # Apply margin inset to exclude any border/background
-            margin_x = int(w * self.MARGIN_INSET_PERCENT)
-            margin_y = int(h * self.MARGIN_INSET_PERCENT)
+        # Use outset padding to ensure card/case edges are fully visible
+        if is_screenshot:
+            padding_pct = self.SCREENSHOT_PADDING_PERCENT
+            logger.info(f"Screenshot mode: applying {padding_pct:.1%} edge padding")
         else:
-            # No margin for screenshots - use exact bounding box
-            margin_x = 0
-            margin_y = 0
-            logger.info("Screenshot mode: not applying margin inset")
+            padding_pct = self.EDGE_PADDING_PERCENT
+            logger.info(f"Standard mode: applying {padding_pct:.1%} edge padding")
 
-        # Calculate new coordinates with margin
-        x1 = max(0, x + margin_x)
-        y1 = max(0, y + margin_y)
-        x2 = min(img_w, x + w - margin_x)
-        y2 = min(img_h, y + h - margin_y)
+        pad_x = int(w * padding_pct)
+        pad_y = int(h * padding_pct)
+
+        # Expand outward from detected boundary (clamp to image edges)
+        x1 = max(0, x - pad_x)
+        y1 = max(0, y - pad_y)
+        x2 = min(img_w, x + w + pad_x)
+        y2 = min(img_h, y + h + pad_y)
 
         # Ensure we have a valid region
         if x2 <= x1 or y2 <= y1:
-            logger.warning("Invalid crop region after margin inset, using original bbox")
+            logger.warning("Invalid crop region after padding, using original bbox")
             x1 = max(0, x)
             y1 = max(0, y)
             x2 = min(img_w, x + w)
