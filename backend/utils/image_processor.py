@@ -488,17 +488,97 @@ class CardCropper:
 
         return min(1.0, confidence)
 
+    def _trim_screenshot_borders(self, image: np.ndarray) -> np.ndarray:
+        """
+        Trim both light (white app background) and dark uniform (viewer background)
+        borders from a screenshot crop. Screenshots typically have:
+        - White borders from the app's UI background
+        - Dark/black borders from the card viewer/gallery component
+
+        Scans from each edge inward. A row/column is considered a "border" if:
+        - It's very bright (white app bg): mean > 230
+        - It's very dark AND uniform (viewer bg): mean < 30 AND std < 25
+
+        Args:
+            image: Input image (BGR format)
+
+        Returns:
+            Trimmed image with screenshot borders removed
+        """
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        h, w = gray.shape
+
+        row_mean = np.mean(gray, axis=1)
+        row_std = np.std(gray, axis=1)
+        col_mean = np.mean(gray, axis=0)
+        col_std = np.std(gray, axis=0)
+
+        def is_border_line(mean_val: float, std_val: float) -> bool:
+            """A line is a border if it's uniformly very dark or very bright."""
+            if mean_val > 230:
+                return True  # White app background
+            if mean_val < 30 and std_val < 25:
+                return True  # Dark uniform viewer background
+            return False
+
+        # Scan from top
+        top = 0
+        for i in range(h):
+            if not is_border_line(row_mean[i], row_std[i]):
+                top = i
+                break
+
+        # Scan from bottom
+        bottom = h
+        for i in range(h - 1, -1, -1):
+            if not is_border_line(row_mean[i], row_std[i]):
+                bottom = i + 1
+                break
+
+        # Scan from left
+        left = 0
+        for j in range(w):
+            if not is_border_line(col_mean[j], col_std[j]):
+                left = j
+                break
+
+        # Scan from right
+        right = w
+        for j in range(w - 1, -1, -1):
+            if not is_border_line(col_mean[j], col_std[j]):
+                right = j + 1
+                break
+
+        # Validate
+        if right <= left or bottom <= top:
+            logger.warning("Screenshot border trimming found no content, returning original")
+            return image
+
+        # Keep a tiny safety margin (2px)
+        margin = 2
+        top = max(0, top - margin)
+        left = max(0, left - margin)
+        bottom = min(h, bottom + margin)
+        right = min(w, right + margin)
+
+        trimmed = image[top:bottom, left:right]
+        logger.info(
+            f"Trimmed screenshot borders: ({left},{top})-({right},{bottom}), "
+            f"removed {w - (right - left)}px horizontal, {h - (bottom - top)}px vertical"
+        )
+        return trimmed
+
     def _extract_card_bbox(self, image: np.ndarray, bbox: List[int], is_screenshot: bool = False) -> Optional[np.ndarray]:
         """
         Extract card using axis-aligned bounding box (no perspective distortion).
-        Applies a small outset padding beyond the detected edge so the full card/case
-        edges remain visible with minimal surrounding background.
+        For screenshots: crops then trims white/light borders from the app background.
+        For non-screenshots: applies a small outset padding for edge visibility.
         Auto-rotates sideways cards to upright (portrait) orientation.
 
         Args:
             image: Original image
             bbox: Bounding box as [x, y, w, h]
-            is_screenshot: Whether this is a screenshot (uses slightly larger padding)
+            is_screenshot: Whether this is a screenshot (trims white borders)
 
         Returns:
             Cropped card image (rotated to upright if needed)
@@ -506,26 +586,27 @@ class CardCropper:
         x, y, w, h = bbox
         img_h, img_w = image.shape[:2]
 
-        # Use outset padding to ensure card/case edges are fully visible
         if is_screenshot:
-            padding_pct = self.SCREENSHOT_PADDING_PERCENT
-            logger.info(f"Screenshot mode: applying {padding_pct:.1%} edge padding")
+            # For screenshots: crop the detected region, then trim white borders
+            logger.info("Screenshot mode: will trim light borders after initial crop")
+            x1 = max(0, x)
+            y1 = max(0, y)
+            x2 = min(img_w, x + w)
+            y2 = min(img_h, y + h)
         else:
+            # For non-screenshots: apply small outset padding for edge visibility
             padding_pct = self.EDGE_PADDING_PERCENT
             logger.info(f"Standard mode: applying {padding_pct:.1%} edge padding")
-
-        pad_x = int(w * padding_pct)
-        pad_y = int(h * padding_pct)
-
-        # Expand outward from detected boundary (clamp to image edges)
-        x1 = max(0, x - pad_x)
-        y1 = max(0, y - pad_y)
-        x2 = min(img_w, x + w + pad_x)
-        y2 = min(img_h, y + h + pad_y)
+            pad_x = int(w * padding_pct)
+            pad_y = int(h * padding_pct)
+            x1 = max(0, x - pad_x)
+            y1 = max(0, y - pad_y)
+            x2 = min(img_w, x + w + pad_x)
+            y2 = min(img_h, y + h + pad_y)
 
         # Ensure we have a valid region
         if x2 <= x1 or y2 <= y1:
-            logger.warning("Invalid crop region after padding, using original bbox")
+            logger.warning("Invalid crop region, using original bbox")
             x1 = max(0, x)
             y1 = max(0, y)
             x2 = min(img_w, x + w)
@@ -545,6 +626,12 @@ class CardCropper:
             return None
 
         logger.info(f"Cropped from ({x1},{y1}) to ({x2},{y2}), size: {crop_w}x{crop_h}")
+
+        # For screenshots: trim white/dark uniform borders from the app background
+        if is_screenshot:
+            cropped = self._trim_screenshot_borders(cropped)
+            crop_h, crop_w = cropped.shape[:2]
+            logger.info(f"After trim: {crop_w}x{crop_h}")
 
         # Auto-rotate if image is sideways (landscape when it should be portrait)
         # Standard cards should be portrait (height > width)

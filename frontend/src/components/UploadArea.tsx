@@ -82,11 +82,10 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
         onDragLeave={handleDragLeave}
         onClick={handleClick}
         className={`
-          upload-border rounded-2xl p-8 text-center cursor-pointer
-          transition-all duration-300 min-h-[200px]
-          flex flex-col items-center justify-center gap-4
+          upload-zone rounded-2xl p-10 sm:p-12 text-center cursor-pointer
+          min-h-[220px] flex flex-col items-center justify-center gap-5
           ${isDragOver ? "drag-over" : ""}
-          ${disabled ? "opacity-50 cursor-not-allowed" : "active:scale-[0.98]"}
+          ${disabled ? "opacity-50 cursor-not-allowed" : "active:scale-[0.99]"}
         `}
       >
         <input
@@ -98,37 +97,54 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
           disabled={disabled}
         />
 
-        {/* Upload icon */}
-        <div className={`
-          w-16 h-16 rounded-full flex items-center justify-center
-          transition-all duration-300
-          ${isDragOver ? "bg-[#003DA5]/20 scale-110" : "bg-white/5"}
-        `}>
-          <svg
-            className={`w-8 h-8 transition-colors duration-300 ${isDragOver ? "text-blue-300" : "text-blue-400"}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-            />
-          </svg>
+        {/* Floating card icon */}
+        <div className={`float-anim transition-all duration-300 ${isDragOver ? "scale-110" : ""}`}>
+          <div className={`
+            w-16 h-16 rounded-2xl flex items-center justify-center
+            transition-all duration-400
+            ${isDragOver
+              ? "bg-[#003DA5]/20 shadow-lg shadow-blue-500/10"
+              : "bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/[0.08]"
+            }
+          `}>
+            <svg
+              className={`w-7 h-7 transition-colors duration-300 ${isDragOver ? "text-blue-300" : "text-white/50"}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+              />
+            </svg>
+          </div>
         </div>
 
-        <div>
-          <p className="text-white/90 font-medium text-lg">
+        <div className="space-y-1.5">
+          <p className="text-white/90 font-semibold text-base">
             {isDragOver ? "Drop your card image" : "Upload a card image"}
           </p>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-white/35 text-sm">
             Tap to select or drag &amp; drop
           </p>
-          <p className="text-white/30 text-xs mt-2">
-            JPEG, PNG, WebP, HEIC &middot; Max {MAX_SIZE_MB}MB
-          </p>
+        </div>
+
+        {/* Format badges */}
+        <div className="flex items-center gap-2 flex-wrap justify-center">
+          {["JPEG", "PNG", "WebP", "HEIC"].map((fmt) => (
+            <span
+              key={fmt}
+              className="text-[10px] font-medium text-white/25 bg-white/[0.04] border border-white/[0.06] rounded-md px-2 py-0.5"
+            >
+              {fmt}
+            </span>
+          ))}
+          <span className="text-[10px] text-white/20">
+            Max {MAX_SIZE_MB}MB
+          </span>
         </div>
       </div>
 

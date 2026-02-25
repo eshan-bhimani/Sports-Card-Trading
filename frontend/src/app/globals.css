@@ -221,29 +221,134 @@ body {
 }
 
 /* ───────────────────────────────────────────
-   Upload area dashed border animation
+   Animated gradient border (Cluely-style)
    ─────────────────────────────────────────── */
-.upload-border {
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  transition: border-color 0.3s ease, background 0.3s ease;
+.gradient-border-wrap {
+  position: relative;
+  border-radius: 1.25rem;
+  padding: 1px;
+  background: linear-gradient(
+    var(--border-angle, 0deg),
+    rgba(200, 16, 46, 0.5),
+    rgba(0, 61, 165, 0.5),
+    rgba(200, 16, 46, 0.3),
+    rgba(0, 61, 165, 0.3)
+  );
+  animation: borderRotate 4s linear infinite;
 }
 
-.upload-border:hover,
-.upload-border.drag-over {
+.gradient-border-wrap > * {
+  border-radius: calc(1.25rem - 1px);
+}
+
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes borderRotate {
+  to { --border-angle: 360deg; }
+}
+
+/* Upload area */
+.upload-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  transition: border-color 0.4s ease, background 0.4s ease, transform 0.3s ease;
+}
+
+.upload-zone:hover {
+  border-color: rgba(200, 16, 46, 0.4);
+  background: rgba(200, 16, 46, 0.03);
+}
+
+.upload-zone.drag-over {
   border-color: rgba(0, 61, 165, 0.6);
-  background: rgba(0, 61, 165, 0.05);
+  background: rgba(0, 61, 165, 0.06);
+  transform: scale(1.01);
+}
+
+/* ───────────────────────────────────────────
+   Step indicator
+   ─────────────────────────────────────────── */
+.step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-dot.active {
+  background: #C8102E;
+  border-color: rgba(200, 16, 46, 0.6);
+  box-shadow: 0 0 12px rgba(200, 16, 46, 0.4);
+}
+
+.step-dot.completed {
+  background: #10b981;
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+.step-line {
+  height: 1.5px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 0.5s ease;
+}
+
+.step-line.filled {
+  background: linear-gradient(90deg, #10b981, rgba(16, 185, 129, 0.3));
 }
 
 /* ───────────────────────────────────────────
    Pulse animation for processing
    ─────────────────────────────────────────── */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(0, 61, 165, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(0, 61, 165, 0.4); }
+  0%, 100% { box-shadow: 0 0 20px rgba(200, 16, 46, 0.15), 0 8px 32px rgba(0, 0, 0, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(200, 16, 46, 0.3), 0 8px 32px rgba(0, 0, 0, 0.3); }
 }
 
 .processing-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ───────────────────────────────────────────
+   Confidence ring
+   ─────────────────────────────────────────── */
+.confidence-ring-track {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.confidence-ring-fill {
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ───────────────────────────────────────────
+   Premium button styles
+   ─────────────────────────────────────────── */
+.btn-glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-glass:active {
+  transform: translateY(0) scale(0.98);
 }
 
 /* ───────────────────────────────────────────
@@ -284,6 +389,18 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ───────────────────────────────────────────
+   Float animation for icons
+   ─────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.float-anim {
+  animation: float 3s ease-in-out infinite;
 }
 
 /* ───────────────────────────────────────────
