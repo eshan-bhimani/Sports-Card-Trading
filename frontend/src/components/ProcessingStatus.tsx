@@ -9,28 +9,32 @@ interface ProcessingStatusProps {
 
 const stateConfig: Record<
   ProcessingState,
-  { label: string; sublabel: string; color: string }
+  { label: string; sublabel: string; color: string; bgColor: string }
 > = {
-  idle: { label: "", sublabel: "", color: "" },
+  idle: { label: "", sublabel: "", color: "", bgColor: "" },
   uploading: {
     label: "Uploading image...",
     sublabel: "Sending to server",
     color: "text-blue-400",
+    bgColor: "bg-blue-500/20",
   },
   processing: {
     label: "Processing card...",
     sublabel: "Detecting and cropping",
     color: "text-amber-400",
+    bgColor: "bg-amber-500/20",
   },
   complete: {
     label: "Done!",
     sublabel: "Card processed successfully",
     color: "text-emerald-400",
+    bgColor: "bg-emerald-500/20",
   },
   error: {
     label: "Processing failed",
     sublabel: "",
     color: "text-red-400",
+    bgColor: "bg-red-500/20",
   },
 };
 
@@ -43,7 +47,7 @@ export default function ProcessingStatus({ state, error }: ProcessingStatusProps
   return (
     <div
       className={`
-        glass rounded-xl px-5 py-4 w-full fade-in
+        glass-hero rounded-xl px-5 py-4 w-full
         flex items-center gap-4
         ${isActive ? "processing-glow" : ""}
       `}
@@ -72,14 +76,14 @@ export default function ProcessingStatus({ state, error }: ProcessingStatusProps
           </div>
         )}
         {state === "complete" && (
-          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+          <div className={`w-8 h-8 rounded-full ${config.bgColor} flex items-center justify-center`}>
             <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
         )}
         {state === "error" && (
-          <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+          <div className={`w-8 h-8 rounded-full ${config.bgColor} flex items-center justify-center`}>
             <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>

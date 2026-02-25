@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ConventionConnection - Baseball Card Auto-Crop",
+  title: "CollectHub - Baseball Card Auto-Crop",
   description:
     "Auto-crop and orient your baseball card images for PSA Set Registry and Fanatics Vault.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "ConventionConnection",
+    title: "CollectHub",
   },
 };
 

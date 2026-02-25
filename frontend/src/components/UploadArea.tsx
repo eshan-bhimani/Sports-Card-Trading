@@ -99,9 +99,13 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
         />
 
         {/* Upload icon */}
-        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+        <div className={`
+          w-16 h-16 rounded-full flex items-center justify-center
+          transition-all duration-300
+          ${isDragOver ? "bg-[#003DA5]/20 scale-110" : "bg-white/5"}
+        `}>
           <svg
-            className="w-8 h-8 text-blue-400"
+            className={`w-8 h-8 transition-colors duration-300 ${isDragOver ? "text-blue-300" : "text-blue-400"}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

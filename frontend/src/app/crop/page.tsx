@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import GlassContainer from "@/components/GlassContainer";
 import UploadArea from "@/components/UploadArea";
 import ProcessingStatus, {
   type ProcessingState,
@@ -49,13 +49,23 @@ export default function CropPage() {
   const showUpload = state === "idle";
 
   return (
-    <div className="bg-gradient-animated min-h-dvh flex flex-col">
+    <div className="bg-landing min-h-dvh flex flex-col noise-overlay vignette relative overflow-hidden">
+      {/* Animated glow blobs */}
+      <div className="glow-blob glow-blob-blue" />
+      <div className="glow-blob glow-blob-red" />
+      <div className="glow-blob glow-blob-blue-bottom" />
+
       {/* Header */}
-      <header className="px-4 pt-6 pb-2">
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative z-10 px-4 pt-6 pb-2"
+      >
         <div className="max-w-lg mx-auto">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm mb-3"
+            className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm mb-3 group"
           >
             <svg
               width="14"
@@ -66,56 +76,100 @@ export default function CropPage() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              className="group-hover:-translate-x-0.5 transition-transform duration-200"
             >
               <path d="M15 18l-6-6 6-6" />
             </svg>
             Back
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-white">
-            Crop Tool
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+            <span className="text-white">Crop</span>{" "}
+            <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
+              Tool
+            </span>
           </h1>
           <p className="text-white/40 text-sm mt-1">
             Auto-crop &amp; orient your baseball cards
           </p>
         </div>
-      </header>
+      </motion.header>
 
       {/* Main content */}
-      <main className="flex-1 px-4 py-4 flex flex-col">
+      <main className="relative z-10 flex-1 px-4 py-4 flex flex-col">
         <div className="max-w-lg mx-auto w-full flex flex-col gap-4 flex-1">
           {/* Upload area - shown when idle */}
-          {showUpload && (
-            <GlassContainer className="p-4" strong>
-              <UploadArea
-                onFileSelected={handleFileSelected}
-                disabled={isProcessing}
-              />
-            </GlassContainer>
-          )}
+          <AnimatePresence mode="wait">
+            {showUpload && (
+              <motion.div
+                key="upload"
+                initial={{ opacity: 0, y: 20, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              >
+                <div className="glass-hero rounded-2xl p-5">
+                  <UploadArea
+                    onFileSelected={handleFileSelected}
+                    disabled={isProcessing}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Processing status */}
-          {state !== "idle" && (
-            <ProcessingStatus state={state} error={error} />
-          )}
+          <AnimatePresence>
+            {state !== "idle" && (
+              <motion.div
+                key="status"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+              >
+                <ProcessingStatus state={state} error={error} />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Image preview */}
-          {originalUrl && (
-            <ImagePreview
-              originalUrl={originalUrl}
-              processedUrl={result?.cropped_image ?? null}
-              isProcessing={isProcessing}
-              confidence={result?.confidence}
-            />
-          )}
+          <AnimatePresence>
+            {originalUrl && (
+              <motion.div
+                key="preview"
+                initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
+              >
+                <ImagePreview
+                  originalUrl={originalUrl}
+                  processedUrl={result?.cropped_image ?? null}
+                  isProcessing={isProcessing}
+                  confidence={result?.confidence}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Action bar - shown after upload initiated */}
-          {state !== "idle" && (
-            <ActionBar
-              processedUrl={result?.cropped_image ?? null}
-              onReset={handleReset}
-              isProcessing={isProcessing}
-            />
-          )}
+          <AnimatePresence>
+            {state !== "idle" && (
+              <motion.div
+                key="actions"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+              >
+                <ActionBar
+                  processedUrl={result?.cropped_image ?? null}
+                  onReset={handleReset}
+                  isProcessing={isProcessing}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Spacer to push content up on mobile */}
           <div className="flex-1" />
@@ -123,11 +177,16 @@ export default function CropPage() {
       </main>
 
       {/* Footer */}
-      <footer className="px-4 pb-6 pt-2">
+      <motion.footer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+        className="relative z-10 px-4 pb-6 pt-2"
+      >
         <p className="text-center text-white/20 text-xs">
-          ConventionConnection &middot; Baseball Card Tools
+          CollectHub &middot; Baseball Card Tools
         </p>
-      </footer>
+      </motion.footer>
     </div>
   );
 }

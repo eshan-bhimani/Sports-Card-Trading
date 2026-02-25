@@ -20,20 +20,20 @@ export default function ActionBar({ processedUrl, onReset, isProcessing }: Actio
   };
 
   return (
-    <div className="w-full space-y-3 fade-in">
+    <div className="w-full space-y-3">
       {/* Primary actions */}
       <div className="flex gap-3">
         <button
           onClick={handleDownload}
           disabled={!hasResult}
           className={`
-            flex-1 py-3.5 rounded-xl font-medium text-sm
-            transition-all duration-200
+            flex-1 py-3.5 rounded-xl font-semibold text-sm
+            transition-all duration-300
             flex items-center justify-center gap-2
             ${
               hasResult
-                ? "bg-blue-500 hover:bg-blue-600 active:scale-[0.97] text-white shadow-lg shadow-blue-500/25"
-                : "bg-white/5 text-white/20 cursor-not-allowed"
+                ? "btn-cta active:scale-[0.97]"
+                : "glass text-white/20 cursor-not-allowed"
             }
           `}
         >
@@ -45,9 +45,9 @@ export default function ActionBar({ processedUrl, onReset, isProcessing }: Actio
         <button
           onClick={onReset}
           className="
-            flex-1 py-3.5 rounded-xl font-medium text-sm
-            glass hover:bg-white/10 active:scale-[0.97]
-            transition-all duration-200 text-white/80
+            flex-1 py-3.5 rounded-xl font-semibold text-sm
+            glass-hero hover:bg-white/10 active:scale-[0.97]
+            transition-all duration-300 text-white/80
             flex items-center justify-center gap-2
           "
         >
@@ -64,9 +64,9 @@ export default function ActionBar({ processedUrl, onReset, isProcessing }: Actio
           disabled
           className="
             flex-1 py-3 rounded-xl text-sm
-            bg-white/[0.03] border border-white/[0.06]
-            text-white/25 cursor-not-allowed
+            glass text-white/25 cursor-not-allowed
             flex flex-col items-center justify-center gap-1
+            opacity-50
           "
         >
           <div className="flex items-center gap-1.5">
@@ -81,9 +81,9 @@ export default function ActionBar({ processedUrl, onReset, isProcessing }: Actio
           disabled
           className="
             flex-1 py-3 rounded-xl text-sm
-            bg-white/[0.03] border border-white/[0.06]
-            text-white/25 cursor-not-allowed
+            glass text-white/25 cursor-not-allowed
             flex flex-col items-center justify-center gap-1
+            opacity-50
           "
         >
           <div className="flex items-center gap-1.5">
