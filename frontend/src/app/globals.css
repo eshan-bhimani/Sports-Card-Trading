@@ -221,8 +221,69 @@ body {
 }
 
 /* ───────────────────────────────────────────
-   Upload area dashed border animation
+   Enhanced Upload Zone
    ─────────────────────────────────────────── */
+.upload-zone {
+  position: relative;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.4s ease;
+}
+
+.upload-zone::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, transparent 0%, rgba(0, 61, 165, 0.3) 50%, transparent 100%);
+  background-size: 200% 200%;
+  animation: borderGlow 4s ease-in-out infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.upload-zone:hover::before {
+  opacity: 1;
+}
+
+.upload-zone:hover {
+  border-color: rgba(0, 61, 165, 0.4);
+  background: rgba(0, 61, 165, 0.05);
+}
+
+.upload-zone.drag-over {
+  border-color: rgba(0, 61, 165, 0.6);
+  background: rgba(0, 61, 165, 0.08);
+  box-shadow: 0 0 40px rgba(0, 61, 165, 0.2), inset 0 0 40px rgba(0, 61, 165, 0.05);
+}
+
+.upload-zone.drag-over::before {
+  opacity: 1;
+}
+
+@keyframes borderGlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.upload-icon-container {
+  background: rgba(0, 61, 165, 0.1);
+  border: 1px solid rgba(0, 61, 165, 0.15);
+}
+
+.upload-icon-active {
+  background: rgba(0, 61, 165, 0.25) !important;
+  border-color: rgba(0, 61, 165, 0.4) !important;
+  box-shadow: 0 0 30px rgba(0, 61, 165, 0.3);
+}
+
+/* Legacy support */
 .upload-border {
   border: 2px dashed rgba(255, 255, 255, 0.2);
   transition: border-color 0.3s ease, background 0.3s ease;
@@ -232,6 +293,75 @@ body {
 .upload-border.drag-over {
   border-color: rgba(0, 61, 165, 0.6);
   background: rgba(0, 61, 165, 0.05);
+}
+
+/* ───────────────────────────────────────────
+   Step Indicator
+   ─────────────────────────────────────────── */
+.step-active {
+  background: linear-gradient(135deg, rgba(0, 61, 165, 0.3) 0%, rgba(200, 16, 46, 0.2) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 20px rgba(0, 61, 165, 0.3);
+}
+
+/* ───────────────────────────────────────────
+   Before/After Slider
+   ─────────────────────────────────────────── */
+.slider-handle {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.slider-handle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* ───────────────────────────────────────────
+   Confidence Badge
+   ─────────────────────────────────────────── */
+.confidence-badge {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ───────────────────────────────────────────
+   Crop Adjuster
+   ─────────────────────────────────────────── */
+.crop-adjuster-container .ReactCrop {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.crop-adjuster-container .ReactCrop__crop-selection {
+  border: 2px solid rgba(200, 16, 46, 0.8) !important;
+  box-shadow: 0 0 20px rgba(200, 16, 46, 0.3), 0 0 0 9999px rgba(0, 0, 0, 0.5) !important;
+}
+
+.crop-adjuster-container .ReactCrop__drag-handle {
+  width: 12px !important;
+  height: 12px !important;
+  background: white !important;
+  border: 2px solid #C8102E !important;
+  border-radius: 50% !important;
+}
+
+/* ───────────────────────────────────────────
+   Processing image animation
+   ─────────────────────────────────────────── */
+.processing-image {
+  animation: processingPulse 2s ease-in-out infinite;
+}
+
+@keyframes processingPulse {
+  0%, 100% { filter: brightness(1) saturate(1); }
+  50% { filter: brightness(0.85) saturate(0.8); }
 }
 
 /* ───────────────────────────────────────────
@@ -284,6 +414,89 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ───────────────────────────────────────────
+   Auction Card Styles
+   ─────────────────────────────────────────── */
+.auction-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.auction-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.bid-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.bid-input:focus {
+  outline: none;
+  border-color: rgba(0, 61, 165, 0.6);
+  box-shadow: 0 0 20px rgba(0, 61, 165, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.price-tag {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.timer-badge {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.timer-badge.ending-soon {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  animation: urgentPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+  50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+}
+
+/* ───────────────────────────────────────────
+   Navigation Bar
+   ─────────────────────────────────────────── */
+.nav-link {
+  position: relative;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.nav-link.active {
+  color: white;
+}
+
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: #C8102E;
+  border-radius: 1px;
 }
 
 /* ───────────────────────────────────────────

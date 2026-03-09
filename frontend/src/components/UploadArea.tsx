@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 interface UploadAreaProps {
   onFileSelected: (file: File) => void;
@@ -82,9 +83,9 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
         onDragLeave={handleDragLeave}
         onClick={handleClick}
         className={`
-          upload-border rounded-2xl p-8 text-center cursor-pointer
-          transition-all duration-300 min-h-[200px]
-          flex flex-col items-center justify-center gap-4
+          upload-zone rounded-2xl p-8 text-center cursor-pointer
+          transition-all duration-300 min-h-[220px]
+          flex flex-col items-center justify-center gap-5
           ${isDragOver ? "drag-over" : ""}
           ${disabled ? "opacity-50 cursor-not-allowed" : "active:scale-[0.98]"}
         `}
@@ -98,14 +99,18 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
           disabled={disabled}
         />
 
-        {/* Upload icon */}
-        <div className={`
-          w-16 h-16 rounded-full flex items-center justify-center
-          transition-all duration-300
-          ${isDragOver ? "bg-[#003DA5]/20 scale-110" : "bg-white/5"}
-        `}>
+        {/* Animated upload icon */}
+        <motion.div
+          animate={isDragOver ? { scale: 1.15, y: -5 } : { scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className={`
+            w-20 h-20 rounded-2xl flex items-center justify-center
+            transition-all duration-300 upload-icon-container
+            ${isDragOver ? "upload-icon-active" : ""}
+          `}
+        >
           <svg
-            className={`w-8 h-8 transition-colors duration-300 ${isDragOver ? "text-blue-300" : "text-blue-400"}`}
+            className={`w-9 h-9 transition-colors duration-300 ${isDragOver ? "text-blue-300" : "text-blue-400"}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -117,23 +122,39 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
               d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
             />
           </svg>
-        </div>
+        </motion.div>
 
         <div>
-          <p className="text-white/90 font-medium text-lg">
+          <p className="text-white/90 font-semibold text-lg">
             {isDragOver ? "Drop your card image" : "Upload a card image"}
           </p>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-white/40 text-sm mt-1.5">
             Tap to select or drag &amp; drop
           </p>
-          <p className="text-white/30 text-xs mt-2">
-            JPEG, PNG, WebP, HEIC &middot; Max {MAX_SIZE_MB}MB
-          </p>
+        </div>
+
+        {/* File type badges */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {["JPEG", "PNG", "WebP", "HEIC"].map((format) => (
+            <span
+              key={format}
+              className="text-[10px] font-medium text-white/30 px-2 py-0.5 rounded-md bg-white/5 border border-white/5"
+            >
+              {format}
+            </span>
+          ))}
+          <span className="text-[10px] text-white/20">Max {MAX_SIZE_MB}MB</span>
         </div>
       </div>
 
       {error && (
-        <p className="text-red-400 text-sm mt-3 text-center fade-in">{error}</p>
+        <motion.p
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-400 text-sm mt-3 text-center"
+        >
+          {error}
+        </motion.p>
       )}
     </div>
   );
