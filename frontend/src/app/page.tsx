@@ -10,14 +10,23 @@ import CTASection from "@/components/Landing/CTASection";
 export default function Home() {
   return (
     <div className="bg-landing min-h-dvh noise-overlay vignette">
-      {/* Ambient glow blobs — soft floating light sources */}
+      {/* Haze depth layers — soft environmental fog */}
+      <div className="haze-upper" />
+      <div className="haze-mid" />
+      <div className="haze-lower" />
+
+      {/* Ambient glow blobs — asymmetric floating light sources */}
       <div className="glow-blob glow-blob-blue" />
       <div className="glow-blob glow-blob-red" />
       <div className="glow-blob glow-blob-blue-bottom" />
       <div className="glow-blob glow-blob-ambient" />
+      <div className="glow-blob glow-blob-upper-right" />
+      <div className="glow-blob glow-blob-deep-bottom" />
 
-      {/* Focused spotlight behind the hero card */}
+      {/* Layered spotlights behind the hero card */}
+      <div className="hero-spotlight-tertiary" />
       <div className="hero-spotlight" />
+      <div className="hero-spotlight-secondary" />
 
       {/* Navigation */}
       <motion.nav
