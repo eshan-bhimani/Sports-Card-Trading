@@ -25,23 +25,23 @@ export default function ImagePreview({
     <div className="w-full">
       {/* Tab switcher */}
       {showProcessed && (
-        <div className="flex gap-1 p-1 glass-hero rounded-xl mb-4 w-fit mx-auto">
+        <div className="flex gap-0.5 p-0.5 bg-[#141416] border border-[#1e1e21] rounded-lg mb-4 w-fit mx-auto">
           <button
             onClick={() => setActiveTab("original")}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-150 ${
               activeTab === "original"
-                ? "bg-white/12 text-white shadow-sm shadow-white/5"
-                : "text-white/40 hover:text-white/60 hover:bg-white/5"
+                ? "bg-[#27272a] text-[#fafafa]"
+                : "text-[#52525b] hover:text-[#a1a1aa]"
             }`}
           >
             Original
           </button>
           <button
             onClick={() => setActiveTab("processed")}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-150 ${
               activeTab === "processed"
-                ? "bg-white/12 text-white shadow-sm shadow-white/5"
-                : "text-white/40 hover:text-white/60 hover:bg-white/5"
+                ? "bg-[#27272a] text-[#fafafa]"
+                : "text-[#52525b] hover:text-[#a1a1aa]"
             }`}
           >
             Processed
@@ -50,16 +50,16 @@ export default function ImagePreview({
       )}
 
       {/* Image display */}
-      <div className="glass-hero rounded-2xl p-3 relative overflow-hidden">
+      <div className="surface rounded-lg p-3 relative overflow-hidden">
         {/* Original image */}
         {(activeTab === "original" || !showProcessed) && (
           <div className="relative">
             <img
               src={originalUrl}
               alt="Original card"
-              className="w-full h-auto rounded-xl max-h-[60vh] object-contain mx-auto block"
+              className="w-full h-auto rounded-md max-h-[60vh] object-contain mx-auto block"
             />
-            <span className="absolute top-3 left-3 glass-strong text-xs font-medium px-2.5 py-1 rounded-lg text-white/70">
+            <span className="absolute top-3 left-3 bg-[#1c1c1f] border border-[#27272a] text-xs font-medium px-2.5 py-1 rounded-md text-[#71717a]">
               Original
             </span>
           </div>
@@ -71,13 +71,13 @@ export default function ImagePreview({
             <img
               src={processedUrl}
               alt="Processed card"
-              className="w-full h-auto rounded-xl max-h-[60vh] object-contain mx-auto block"
+              className="w-full h-auto rounded-md max-h-[60vh] object-contain mx-auto block"
             />
-            <span className="absolute top-3 left-3 glass-strong text-xs font-medium px-2.5 py-1 rounded-lg text-emerald-400">
+            <span className="absolute top-3 left-3 bg-[#1c1c1f] border border-[#27272a] text-xs font-medium px-2.5 py-1 rounded-md text-emerald-400">
               Processed
             </span>
             {confidence !== undefined && (
-              <span className="absolute top-3 right-3 glass-strong text-xs font-medium px-2.5 py-1 rounded-lg text-amber-400">
+              <span className="absolute top-3 right-3 bg-[#1c1c1f] border border-[#27272a] text-xs font-medium px-2.5 py-1 rounded-md text-amber-400">
                 {Math.round(confidence * 100)}% confidence
               </span>
             )}
@@ -87,8 +87,8 @@ export default function ImagePreview({
         {/* Processing skeleton */}
         {isProcessing && activeTab === "processed" && (
           <div className="relative">
-            <div className="skeleton rounded-xl w-full aspect-[2.5/3.5] max-h-[60vh]" />
-            <span className="absolute top-3 left-3 glass-strong text-xs font-medium px-2.5 py-1 rounded-lg text-amber-400">
+            <div className="skeleton rounded-md w-full aspect-[2.5/3.5] max-h-[60vh]" />
+            <span className="absolute top-3 left-3 bg-[#1c1c1f] border border-[#27272a] text-xs font-medium px-2.5 py-1 rounded-md text-amber-400">
               Processing...
             </span>
           </div>

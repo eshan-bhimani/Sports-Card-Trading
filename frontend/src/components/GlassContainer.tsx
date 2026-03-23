@@ -11,7 +11,7 @@ export default function GlassContainer({
 }: GlassContainerProps) {
   return (
     <div
-      className={`${strong ? "glass-strong" : "glass"} rounded-2xl ${className}`}
+      className={`${strong ? "surface-elevated" : "surface"} rounded-lg ${className}`}
     >
       {children}
     </div>

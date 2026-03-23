@@ -83,11 +83,11 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
         onDragLeave={handleDragLeave}
         onClick={handleClick}
         className={`
-          upload-zone rounded-2xl p-8 text-center cursor-pointer
-          transition-all duration-300 min-h-[220px]
-          flex flex-col items-center justify-center gap-5
+          upload-zone rounded-lg p-8 text-center cursor-pointer
+          transition-all duration-150 min-h-[200px]
+          flex flex-col items-center justify-center gap-4
           ${isDragOver ? "drag-over" : ""}
-          ${disabled ? "opacity-50 cursor-not-allowed" : "active:scale-[0.98]"}
+          ${disabled ? "opacity-50 cursor-not-allowed" : "active:scale-[0.99]"}
         `}
       >
         <input
@@ -99,18 +99,18 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
           disabled={disabled}
         />
 
-        {/* Animated upload icon */}
+        {/* Upload icon */}
         <motion.div
-          animate={isDragOver ? { scale: 1.15, y: -5 } : { scale: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          animate={isDragOver ? { scale: 1.05, y: -2 } : { scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
           className={`
-            w-20 h-20 rounded-2xl flex items-center justify-center
-            transition-all duration-300 upload-icon-container
+            w-14 h-14 rounded-lg flex items-center justify-center
+            transition-all duration-150 upload-icon-container
             ${isDragOver ? "upload-icon-active" : ""}
           `}
         >
           <svg
-            className={`w-9 h-9 transition-colors duration-300 ${isDragOver ? "text-blue-300" : "text-blue-400"}`}
+            className={`w-7 h-7 transition-colors duration-150 ${isDragOver ? "text-[#a78bfa]" : "text-[#52525b]"}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -125,31 +125,31 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
         </motion.div>
 
         <div>
-          <p className="text-white/90 font-semibold text-lg">
+          <p className="text-[#e4e4e7] font-medium text-base">
             {isDragOver ? "Drop your card image" : "Upload a card image"}
           </p>
-          <p className="text-white/40 text-sm mt-1.5">
+          <p className="text-[#52525b] text-sm mt-1">
             Tap to select or drag &amp; drop
           </p>
         </div>
 
         {/* File type badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
           {["JPEG", "PNG", "WebP", "HEIC"].map((format) => (
             <span
               key={format}
-              className="text-[10px] font-medium text-white/30 px-2 py-0.5 rounded-md bg-white/5 border border-white/5"
+              className="text-[10px] font-medium text-[#52525b] px-2 py-0.5 rounded bg-[#141416] border border-[#1e1e21]"
             >
               {format}
             </span>
           ))}
-          <span className="text-[10px] text-white/20">Max {MAX_SIZE_MB}MB</span>
+          <span className="text-[10px] text-[#3f3f46]">Max {MAX_SIZE_MB}MB</span>
         </div>
       </div>
 
       {error && (
         <motion.p
-          initial={{ opacity: 0, y: -5 }}
+          initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-red-400 text-sm mt-3 text-center"
         >

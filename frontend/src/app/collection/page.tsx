@@ -48,7 +48,6 @@ export default function CollectionPage() {
     fetchAuctionListings().then(setListings);
   }, []);
 
-  // Resolve current values whenever collection or listings change
   useEffect(() => {
     if (listings.length === 0) return;
     const values: Record<string, number | null> = {};
@@ -58,7 +57,6 @@ export default function CollectionPage() {
     setResolvedValues(values);
   }, [collection, listings]);
 
-  // Re-load on visibility/focus
   useEffect(() => {
     const reload = () => setCollection(loadCollection());
     const handleVisibility = () => {
@@ -131,61 +129,44 @@ export default function CollectionPage() {
   }, []);
 
   return (
-    <div className="bg-landing min-h-dvh flex flex-col noise-overlay vignette relative overflow-hidden">
-      <div className="glow-blob glow-blob-blue" />
-      <div className="glow-blob glow-blob-red" />
-      <div className="glow-blob glow-blob-blue-bottom" />
-
+    <div className="min-h-dvh flex flex-col bg-[#09090b]">
       {/* Header */}
       <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 px-4 pt-6 pb-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="px-4 pt-6 pb-4 border-b border-[#1e1e21]"
       >
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm group"
+              className="inline-flex items-center gap-1.5 text-[#52525b] hover:text-[#a1a1aa] transition-colors text-sm group"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="group-hover:-translate-x-0.5 transition-transform duration-200"
-              >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform duration-150">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
               Back
             </Link>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-            <span className="text-white">My</span>{" "}
-            <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
-              Collection
-            </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#fafafa]">
+            My Collection
           </h1>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-[#52525b] text-sm mt-1">
             Track your cards, values, and profit/loss
           </p>
         </div>
       </motion.header>
 
       {/* Add Card Button */}
-      <div className="relative z-10 px-4 py-3">
+      <div className="px-4 py-3">
         <div className="max-w-3xl mx-auto">
           <button
             onClick={() => {
               resetForm();
               setShowForm(true);
             }}
-            className="px-4 py-2 rounded-xl text-sm font-semibold btn-cta active:scale-[0.95] transition-all duration-300"
+            className="px-4 py-2 rounded-lg text-sm font-medium btn-cta active:scale-[0.98] transition-all duration-150"
           >
             + Add Card
           </button>
@@ -199,10 +180,10 @@ export default function CollectionPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="relative z-10 px-4 overflow-hidden"
+            className="px-4 overflow-hidden"
           >
-            <div className="max-w-3xl mx-auto glass-card rounded-xl p-4 space-y-3 mb-4">
-              <h3 className="text-sm font-semibold text-white/80">
+            <div className="max-w-3xl mx-auto surface rounded-lg p-4 space-y-3 mb-4">
+              <h3 className="text-sm font-medium text-[#fafafa]">
                 {editingId ? "Edit Card" : "Add Card"}
               </h3>
 
@@ -212,28 +193,28 @@ export default function CollectionPage() {
                   placeholder="Player Name *"
                   value={form.playerName}
                   onChange={(e) => setForm({ ...form, playerName: e.target.value })}
-                  className="bid-input px-3 py-2 rounded-lg text-xs col-span-2"
+                  className="bid-input px-3 py-2 rounded-md text-xs col-span-2"
                 />
                 <input
                   type="number"
                   placeholder="Year"
                   value={form.year}
                   onChange={(e) => setForm({ ...form, year: e.target.value })}
-                  className="bid-input px-3 py-2 rounded-lg text-xs"
+                  className="bid-input px-3 py-2 rounded-md text-xs"
                 />
                 <input
                   type="text"
                   placeholder="Brand"
                   value={form.brand}
                   onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                  className="bid-input px-3 py-2 rounded-lg text-xs"
+                  className="bid-input px-3 py-2 rounded-md text-xs"
                 />
                 <input
                   type="text"
                   placeholder="Set Name"
                   value={form.setName}
                   onChange={(e) => setForm({ ...form, setName: e.target.value })}
-                  className="bid-input px-3 py-2 rounded-lg text-xs"
+                  className="bid-input px-3 py-2 rounded-md text-xs"
                 />
                 <select
                   value={form.gradingCompany}
@@ -244,7 +225,7 @@ export default function CollectionPage() {
                       grade: e.target.value === "raw" ? "" : form.grade,
                     })
                   }
-                  className="bid-input px-3 py-2 rounded-lg text-xs"
+                  className="bid-input px-3 py-2 rounded-md text-xs"
                 >
                   <option value="PSA">PSA</option>
                   <option value="BGS">BGS</option>
@@ -257,7 +238,7 @@ export default function CollectionPage() {
                     placeholder="Grade"
                     value={form.grade}
                     onChange={(e) => setForm({ ...form, grade: e.target.value })}
-                    className="bid-input px-3 py-2 rounded-lg text-xs"
+                    className="bid-input px-3 py-2 rounded-md text-xs"
                     min="1"
                     max="10"
                     step="0.5"
@@ -268,7 +249,7 @@ export default function CollectionPage() {
                   placeholder="Purchase Price *"
                   value={form.purchasePrice}
                   onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
-                  className="bid-input px-3 py-2 rounded-lg text-xs"
+                  className="bid-input px-3 py-2 rounded-md text-xs"
                   min="0"
                   step="0.01"
                 />
@@ -277,18 +258,18 @@ export default function CollectionPage() {
                   placeholder="Cert Number"
                   value={form.certNumber}
                   onChange={(e) => setForm({ ...form, certNumber: e.target.value })}
-                  className="bid-input px-3 py-2 rounded-lg text-xs"
+                  className="bid-input px-3 py-2 rounded-md text-xs"
                 />
                 <textarea
                   placeholder="Notes"
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="bid-input px-3 py-2 rounded-lg text-xs col-span-2"
+                  className="bid-input px-3 py-2 rounded-md text-xs col-span-2"
                   rows={2}
                 />
               </div>
 
-              <label className="flex items-center gap-2 text-xs text-white/60 cursor-pointer">
+              <label className="flex items-center gap-2 text-xs text-[#71717a] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={form.forTrade}
@@ -302,13 +283,13 @@ export default function CollectionPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={!form.playerName.trim() || !form.purchasePrice}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold btn-cta active:scale-[0.95] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-md text-xs font-medium btn-cta active:scale-[0.98] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   {editingId ? "Save Changes" : "Add to Collection"}
                 </button>
                 <button
                   onClick={resetForm}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold glass text-white/50 hover:text-white/70 transition-colors"
+                  className="px-4 py-2 rounded-md text-xs font-medium btn-secondary"
                 >
                   Cancel
                 </button>
@@ -319,11 +300,11 @@ export default function CollectionPage() {
       </AnimatePresence>
 
       {/* Collection Grid */}
-      <main className="relative z-10 flex-1 px-4 py-4">
-        <div className="max-w-3xl mx-auto space-y-3">
+      <main className="flex-1 px-4 py-4">
+        <div className="max-w-3xl mx-auto space-y-2">
           {collection.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-white/40 text-sm">
+              <p className="text-[#52525b] text-sm">
                 No cards in your collection yet. Add your first card above.
               </p>
             </div>
@@ -336,25 +317,25 @@ export default function CollectionPage() {
                 return (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.4, delay: i * 0.05 }}
-                    className="auction-card rounded-xl p-4"
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25, delay: i * 0.03 }}
+                    className="auction-card rounded-lg p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-semibold text-white/90 truncate">
+                          <h3 className="text-sm font-medium text-[#fafafa] truncate">
                             {item.playerName}
                           </h3>
                           {item.forTrade && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex-shrink-0">
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-500/8 border border-emerald-500/20 text-emerald-400 flex-shrink-0">
                               For Trade
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-white/40 truncate mt-0.5">
+                        <p className="text-xs text-[#52525b] truncate mt-0.5">
                           {[item.year, item.brand, item.setName]
                             .filter(Boolean)
                             .join(" · ")}
@@ -363,7 +344,7 @@ export default function CollectionPage() {
                             : " · Raw"}
                         </p>
                         {item.certNumber && (
-                          <p className="text-[10px] text-white/25 mt-0.5">
+                          <p className="text-[10px] text-[#3f3f46] mt-0.5">
                             Cert #{item.certNumber}
                           </p>
                         )}
@@ -371,31 +352,31 @@ export default function CollectionPage() {
                         {/* Value & Profit/Loss */}
                         <div className="mt-2 flex items-center gap-4">
                           <div>
-                            <p className="text-[10px] text-white/30">Purchased</p>
-                            <p className="text-xs font-medium text-white/70">
+                            <p className="text-[10px] text-[#3f3f46]">Purchased</p>
+                            <p className="text-xs font-medium text-[#a1a1aa]">
                               {formatUSD(item.purchasePrice)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-[10px] text-white/30">Current Value</p>
+                            <p className="text-[10px] text-[#3f3f46]">Current Value</p>
                             {currentValue != null ? (
-                              <p className="text-xs font-medium text-white/70">
+                              <p className="text-xs font-medium text-[#a1a1aa]">
                                 {formatUSD(currentValue)}
-                                <span className="text-[9px] text-white/25 ml-1">
+                                <span className="text-[9px] text-[#3f3f46] ml-1">
                                   Est. from active listings
                                 </span>
                               </p>
                             ) : (
-                              <p className="text-xs text-white/25 italic">
+                              <p className="text-xs text-[#3f3f46] italic">
                                 No recent sales data
                               </p>
                             )}
                           </div>
                           {profitLoss != null && (
                             <div>
-                              <p className="text-[10px] text-white/30">P/L</p>
+                              <p className="text-[10px] text-[#3f3f46]">P/L</p>
                               <p
-                                className={`text-xs font-semibold ${
+                                className={`text-xs font-medium ${
                                   profitLoss >= 0
                                     ? "text-emerald-400"
                                     : "text-red-400"
@@ -409,7 +390,7 @@ export default function CollectionPage() {
                         </div>
 
                         {item.notes && (
-                          <p className="text-[10px] text-white/25 mt-2 truncate">
+                          <p className="text-[10px] text-[#3f3f46] mt-2 truncate">
                             {item.notes}
                           </p>
                         )}
@@ -419,7 +400,7 @@ export default function CollectionPage() {
                       <div className="flex gap-1.5 flex-shrink-0">
                         <button
                           onClick={() => handleEdit(item)}
-                          className="p-1.5 rounded-lg glass text-white/30 hover:text-white/60 transition-colors"
+                          className="p-1.5 rounded-md bg-[#141416] border border-[#1e1e21] text-[#52525b] hover:text-[#a1a1aa] transition-colors"
                           title="Edit"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -429,7 +410,7 @@ export default function CollectionPage() {
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 rounded-lg glass text-white/30 hover:text-red-400 transition-colors"
+                          className="p-1.5 rounded-md bg-[#141416] border border-[#1e1e21] text-[#52525b] hover:text-red-400 transition-colors"
                           title="Delete"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -448,16 +429,11 @@ export default function CollectionPage() {
       </main>
 
       {/* Footer */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="relative z-10 px-4 pb-6 pt-2"
-      >
-        <p className="text-center text-white/20 text-xs">
+      <footer className="px-4 pb-6 pt-2 border-t border-[#1e1e21]">
+        <p className="text-center text-[#3f3f46] text-xs">
           CollectHub &middot; Collection Tracker &middot; Values from Active Listings
         </p>
-      </motion.footer>
+      </footer>
     </div>
   );
 }

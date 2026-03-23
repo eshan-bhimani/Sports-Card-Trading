@@ -65,7 +65,6 @@ export default function CropAdjuster({
     if (!imgRef.current) return;
     setIsApplying(true);
 
-    // Convert percentage crop to pixel crop
     const image = imgRef.current;
     const pixelCrop: PixelCrop = {
       unit: "px",
@@ -84,34 +83,32 @@ export default function CropAdjuster({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.3 }}
       className="w-full space-y-4"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-1">
         <div>
-          <h3 className="text-white/90 font-semibold text-sm">
+          <h3 className="text-[#fafafa] font-medium text-sm">
             Fine-tune your crop
           </h3>
-          <p className="text-white/40 text-xs mt-0.5">
+          <p className="text-[#52525b] text-xs mt-0.5">
             Drag the corners to adjust the crop region
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onSkip}
-            className="text-xs text-white/40 hover:text-white/60 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
-          >
-            Skip
-          </button>
-        </div>
+        <button
+          onClick={onSkip}
+          className="text-xs text-[#52525b] hover:text-[#a1a1aa] transition-colors px-3 py-1.5 rounded-md hover:bg-[#141416]"
+        >
+          Skip
+        </button>
       </div>
 
       {/* Crop area */}
-      <div className="glass-hero rounded-2xl p-3 overflow-hidden">
-        <div className="rounded-xl overflow-hidden crop-adjuster-container">
+      <div className="surface rounded-lg p-3 overflow-hidden">
+        <div className="rounded-md overflow-hidden crop-adjuster-container">
           <ReactCrop
             crop={crop}
             onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -129,20 +126,20 @@ export default function CropAdjuster({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <button
           onClick={handleApplyCrop}
           disabled={isApplying}
-          className="flex-1 py-3.5 rounded-xl font-semibold text-sm btn-cta active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-2"
+          className="flex-1 py-3 rounded-lg font-medium text-sm btn-cta active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 13l4 4L19 7" />
           </svg>
           {isApplying ? "Applying..." : "Apply Crop"}
         </button>
         <button
           onClick={onSkip}
-          className="flex-1 py-3.5 rounded-xl font-semibold text-sm glass-hero hover:bg-white/10 active:scale-[0.97] transition-all duration-300 text-white/80 flex items-center justify-center gap-2"
+          className="flex-1 py-3 rounded-lg font-medium text-sm btn-secondary active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
         >
           Use Auto-Crop
         </button>

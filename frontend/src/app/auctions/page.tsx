@@ -45,14 +45,14 @@ function CardInitials({ name, color }: { name: string; color: string }) {
     .join("");
   return (
     <div
-      className="w-full aspect-[2.5/3.5] rounded-lg flex items-center justify-center relative overflow-hidden"
-      style={{
-        background: `linear-gradient(160deg, ${color} 0%, ${color}dd 40%, #0a1628 100%)`,
-      }}
+      className="w-full aspect-[2.5/3.5] rounded-md flex items-center justify-center relative overflow-hidden bg-[#141416] border border-[#1e1e21]"
     >
-      <div className="absolute inset-[2px] rounded-md border border-white/10" />
-      <div className="w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-        <span className="text-xl font-black text-white/60">{initials}</span>
+      <div
+        className="absolute top-0 left-0 right-0 h-0.5"
+        style={{ background: color }}
+      />
+      <div className="w-12 h-12 rounded-full bg-[#1c1c1f] border border-[#27272a] flex items-center justify-center">
+        <span className="text-lg font-bold text-[#52525b]">{initials}</span>
       </div>
     </div>
   );
@@ -80,20 +80,20 @@ function BidBadge({
 
   const config = {
     good: {
-      bg: "bg-emerald-500/15",
-      border: "border-emerald-500/30",
+      bg: "bg-emerald-500/8",
+      border: "border-emerald-500/20",
       text: "text-emerald-400",
       label: "Good deal",
     },
     "near-limit": {
-      bg: "bg-amber-500/15",
-      border: "border-amber-500/30",
+      bg: "bg-amber-500/8",
+      border: "border-amber-500/20",
       text: "text-amber-400",
       label: "Near limit",
     },
     "over-budget": {
-      bg: "bg-red-500/15",
-      border: "border-red-500/30",
+      bg: "bg-red-500/8",
+      border: "border-red-500/20",
       text: "text-red-400",
       label: "Over budget",
     },
@@ -106,7 +106,7 @@ function BidBadge({
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-semibold border ${config.bg} ${config.border} ${config.text}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium border ${config.bg} ${config.border} ${config.text}`}
     >
       <span
         className={`w-1.5 h-1.5 rounded-full ${
@@ -118,8 +118,8 @@ function BidBadge({
         }`}
       />
       <span>{config.label}</span>
-      <span className="opacity-70">·</span>
-      <span className="opacity-70">{pctLabel} market</span>
+      <span className="opacity-60">&middot;</span>
+      <span className="opacity-60">{pctLabel} market</span>
     </div>
   );
 }
@@ -127,31 +127,31 @@ function BidBadge({
 function WantMatchBadge({ item }: { item: WantListItem }) {
   const config = {
     high: {
-      bg: "bg-red-500/15",
-      border: "border-red-500/30",
+      bg: "bg-red-500/8",
+      border: "border-red-500/20",
       text: "text-red-400",
     },
     medium: {
-      bg: "bg-amber-500/15",
-      border: "border-amber-500/30",
+      bg: "bg-amber-500/8",
+      border: "border-amber-500/20",
       text: "text-amber-400",
     },
     low: {
-      bg: "bg-white/8",
-      border: "border-white/15",
-      text: "text-white/50",
+      bg: "bg-[#1c1c1f]",
+      border: "border-[#27272a]",
+      text: "text-[#71717a]",
     },
   }[item.priority];
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-semibold border ${config.bg} ${config.border} ${config.text}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium border ${config.bg} ${config.border} ${config.text}`}
     >
-      <span>🎯</span>
+      <span className="text-[#8b5cf6]">*</span>
       <span>{item.playerName}</span>
-      <span className="opacity-70">—</span>
-      <span>{item.priority} priority</span>
-      <span className="opacity-70">—</span>
+      <span className="opacity-50">&middot;</span>
+      <span>{item.priority}</span>
+      <span className="opacity-50">&middot;</span>
       <span>max ${item.maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
     </div>
   );
@@ -205,13 +205,13 @@ function AuctionCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="auction-card rounded-xl overflow-hidden"
+      className="auction-card rounded-lg overflow-hidden"
     >
       <div className="p-4 flex gap-4">
         {/* Card image */}
-        <div className="w-24 flex-shrink-0">
+        <div className="w-20 flex-shrink-0">
           <CardInitials name={listing.player} color={listing.imageColor} />
           <div className="mt-2 text-center">
             <span className="grade-badge text-[9px]">
@@ -224,15 +224,15 @@ function AuctionCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-white/90 truncate">
+              <h3 className="text-sm font-medium text-[#fafafa] truncate">
                 {listing.player}
               </h3>
-              <p className="text-xs text-white/40 truncate">
+              <p className="text-xs text-[#52525b] truncate">
                 {listing.year} {listing.set} {listing.cardNumber}
               </p>
             </div>
             <span
-              className={`timer-badge px-2 py-0.5 rounded-md text-[10px] font-semibold flex-shrink-0 ${
+              className={`timer-badge px-2 py-0.5 rounded-md text-[10px] font-medium flex-shrink-0 ${
                 timeLeft.urgent ? "ending-soon text-red-400" : "text-amber-400"
               }`}
             >
@@ -256,29 +256,29 @@ function AuctionCard({
 
           {/* Price info */}
           <div className="mt-2 flex items-center gap-3">
-            <div className="price-tag px-2.5 py-1 rounded-lg">
-              <p className="text-[10px] text-emerald-400/70">Current Bid</p>
-              <p className="text-sm font-bold text-emerald-400">
+            <div className="price-tag px-2 py-1 rounded-md">
+              <p className="text-[10px] text-emerald-400/60">Current Bid</p>
+              <p className="text-sm font-semibold text-emerald-400">
                 ${listing.currentBid.toLocaleString()}
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-white/30">Mkt Avg</p>
-              <p className="text-xs font-medium text-white/50">
+              <p className="text-[10px] text-[#3f3f46]">Mkt Avg</p>
+              <p className="text-xs font-medium text-[#71717a]">
                 {formatPrice(listing.marketAvgPrice)}
               </p>
             </div>
             {evaluation && (
               <div>
-                <p className="text-[10px] text-white/30">True Cost</p>
-                <p className="text-xs font-medium text-white/50">
+                <p className="text-[10px] text-[#3f3f46]">True Cost</p>
+                <p className="text-xs font-medium text-[#71717a]">
                   {formatPrice(evaluation.trueCost)}
                 </p>
               </div>
             )}
             <div>
-              <p className="text-[10px] text-white/30">Bids</p>
-              <p className="text-xs font-medium text-white/50">
+              <p className="text-[10px] text-[#3f3f46]">Bids</p>
+              <p className="text-xs font-medium text-[#71717a]">
                 {listing.bidCount}
               </p>
             </div>
@@ -286,14 +286,14 @@ function AuctionCard({
 
           {/* Auction house badge */}
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-[10px] text-white/25 px-2 py-0.5 rounded bg-white/5 border border-white/5">
+            <span className="text-[10px] text-[#52525b] px-2 py-0.5 rounded bg-[#141416] border border-[#1e1e21]">
               {listing.auctionHouse}
             </span>
-            <span className="text-[10px] text-white/25">
+            <span className="text-[10px] text-[#3f3f46]">
               {listing.team}
             </span>
             {evaluation && (
-              <span className="text-[10px] text-white/20">
+              <span className="text-[10px] text-[#3f3f46]">
                 Max bid: {formatUSD(evaluation.maxBid)}
               </span>
             )}
@@ -306,24 +306,24 @@ function AuctionCard({
               placeholder={`Min $${minBid.toLocaleString()}`}
               value={bidAmount}
               onChange={(e) => setBidAmount(e.target.value)}
-              className="bid-input flex-1 px-3 py-2 rounded-lg text-xs"
+              className="bid-input flex-1 px-3 py-2 rounded-md text-xs"
               min={minBid}
             />
             <button
               onClick={handleBid}
               disabled={isBidding || !bidAmount}
               className={`
-                px-4 py-2 rounded-lg text-xs font-semibold
-                transition-all duration-300
+                px-4 py-2 rounded-md text-xs font-medium
+                transition-all duration-150
                 ${
                   isBidding || !bidAmount
-                    ? "glass text-white/20 cursor-not-allowed"
+                    ? "bg-[#141416] text-[#3f3f46] cursor-not-allowed border border-[#1e1e21]"
                     : "btn-cta active:scale-[0.95]"
                 }
               `}
             >
               {isBidding ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white/80 rounded-full spinner" />
+                <div className="w-4 h-4 border-2 border-[#3f3f46] border-t-[#a1a1aa] rounded-full spinner" />
               ) : (
                 "Bid"
               )}
@@ -334,7 +334,7 @@ function AuctionCard({
           <AnimatePresence>
             {bidMessage && (
               <motion.p
-                initial={{ opacity: 0, y: -5 }}
+                initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 className={`text-[11px] mt-2 ${
@@ -365,19 +365,19 @@ function StrategySummary({ strategy }: { strategy: PricingStrategy }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.15 }}
-      className="glass-card rounded-xl overflow-hidden"
+      transition={{ duration: 0.2, delay: 0.1 }}
+      className="surface rounded-lg overflow-hidden"
     >
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full px-4 py-3 flex items-center justify-between text-left"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-          <span className="text-xs text-white/70 truncate">
-            <span className="font-semibold text-white/90">Strategy:</span> Bid{" "}
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+          <span className="text-xs text-[#a1a1aa] truncate">
+            <span className="font-medium text-[#fafafa]">Strategy:</span> Bid{" "}
             {thresholdLabel} &middot; Source: {strategy.priceSource}
           </span>
         </div>
@@ -390,7 +390,7 @@ function StrategySummary({ strategy }: { strategy: PricingStrategy }) {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={`text-white/30 flex-shrink-0 transition-transform duration-200 ${
+          className={`text-[#3f3f46] flex-shrink-0 transition-transform duration-150 ${
             expanded ? "rotate-180" : ""
           }`}
         >
@@ -404,31 +404,31 @@ function StrategySummary({ strategy }: { strategy: PricingStrategy }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-3 space-y-2 border-t border-white/[0.06] pt-3">
+            <div className="px-4 pb-3 space-y-2 border-t border-[#1e1e21] pt-3">
               <div className="flex justify-between text-xs">
-                <span className="text-white/40">Threshold</span>
-                <span className="text-white/70 font-medium">
+                <span className="text-[#52525b]">Threshold</span>
+                <span className="text-[#a1a1aa] font-medium">
                   {thresholdLabel}
                 </span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-white/40">Price Source</span>
-                <span className="text-white/70 font-medium">
+                <span className="text-[#52525b]">Price Source</span>
+                <span className="text-[#a1a1aa] font-medium">
                   {strategy.priceSource}
                 </span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-white/40">Premiums included</span>
-                <span className="text-white/70 font-medium">
+                <span className="text-[#52525b]">Premiums included</span>
+                <span className="text-[#a1a1aa] font-medium">
                   {Object.keys(BUYER_PREMIUMS).length} platforms
                 </span>
               </div>
               <Link
                 href="/settings/pricing"
-                className="mt-2 block text-center text-[11px] text-[#5b9bff] hover:text-[#7db4ff] transition-colors py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]"
+                className="mt-2 block text-center text-[11px] text-[#8b5cf6] hover:text-[#a78bfa] transition-colors py-1.5 rounded-md bg-[#141416] border border-[#1e1e21]"
               >
                 Edit Strategy
               </Link>
@@ -458,7 +458,6 @@ export default function AuctionsPage() {
     loadListings();
   }, []);
 
-  // Re-load strategy and want list when page becomes visible
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -512,23 +511,19 @@ export default function AuctionsPage() {
   const auctionHouses = ["all", "Fanatics", "Goldin", "PWCC"];
 
   return (
-    <div className="bg-landing min-h-dvh flex flex-col noise-overlay vignette relative overflow-hidden">
-      <div className="glow-blob glow-blob-blue" />
-      <div className="glow-blob glow-blob-red" />
-      <div className="glow-blob glow-blob-blue-bottom" />
-
+    <div className="min-h-dvh flex flex-col bg-[#09090b]">
       {/* Header */}
       <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 px-4 pt-6 pb-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="px-4 pt-6 pb-4 border-b border-[#1e1e21]"
       >
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm group"
+              className="inline-flex items-center gap-1.5 text-[#52525b] hover:text-[#a1a1aa] transition-colors text-sm group"
             >
               <svg
                 width="14"
@@ -539,7 +534,7 @@ export default function AuctionsPage() {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="group-hover:-translate-x-0.5 transition-transform duration-200"
+                className="group-hover:-translate-x-0.5 transition-transform duration-150"
               >
                 <path d="M15 18l-6-6 6-6" />
               </svg>
@@ -547,7 +542,7 @@ export default function AuctionsPage() {
             </Link>
             <Link
               href="/settings/pricing"
-              className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-xs group"
+              className="inline-flex items-center gap-1.5 text-[#52525b] hover:text-[#a1a1aa] transition-colors text-xs group"
             >
               <svg
                 width="14"
@@ -565,37 +560,29 @@ export default function AuctionsPage() {
               Strategy
             </Link>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-            <span className="text-white">Live</span>{" "}
-            <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
-              Auctions
-            </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#fafafa]">
+            Live Auctions
           </h1>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-[#52525b] text-sm mt-1">
             Browse and bid on graded baseball cards
           </p>
         </div>
       </motion.header>
 
       {/* Strategy Summary Widget */}
-      <div className="relative z-10 px-4 py-2">
+      <div className="px-4 py-3">
         <div className="max-w-3xl mx-auto">
           <StrategySummary strategy={strategy} />
         </div>
       </div>
 
       {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="relative z-10 px-4 py-3"
-      >
+      <div className="px-4 py-2">
         <div className="max-w-3xl mx-auto space-y-3">
           {/* Search */}
           <div className="relative">
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3f3f46]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -612,20 +599,20 @@ export default function AuctionsPage() {
               placeholder="Search players, sets, teams..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bid-input w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
+              className="bid-input w-full pl-10 pr-4 py-2.5 rounded-lg text-sm"
             />
           </div>
 
           {/* House filters */}
-          <div className="flex gap-1.5 p-1 glass-hero rounded-xl w-fit">
+          <div className="flex gap-0.5 p-0.5 bg-[#141416] border border-[#1e1e21] rounded-lg w-fit">
             {auctionHouses.map((house) => (
               <button
                 key={house}
                 onClick={() => setFilter(house)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${
                   filter === house
-                    ? "bg-white/12 text-white shadow-sm"
-                    : "text-white/40 hover:text-white/60 hover:bg-white/5"
+                    ? "bg-[#27272a] text-[#fafafa]"
+                    : "text-[#52525b] hover:text-[#a1a1aa]"
                 }`}
               >
                 {house === "all" ? "All" : house}
@@ -633,21 +620,21 @@ export default function AuctionsPage() {
             ))}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Listings */}
-      <main className="relative z-10 flex-1 px-4 py-4">
-        <div className="max-w-3xl mx-auto space-y-3">
+      <main className="flex-1 px-4 py-4">
+        <div className="max-w-3xl mx-auto space-y-2">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="auction-card rounded-xl p-4 h-44 skeleton"
+                className="auction-card rounded-lg p-4 h-44 skeleton"
               />
             ))
           ) : filteredListings.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-white/40 text-sm">
+              <p className="text-[#52525b] text-sm">
                 No listings found
               </p>
             </div>
@@ -656,9 +643,9 @@ export default function AuctionsPage() {
               {filteredListings.map((listing, i) => (
                 <motion.div
                   key={listing.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.08 }}
+                  transition={{ duration: 0.25, delay: i * 0.05 }}
                 >
                   <AuctionCard
                     listing={listing}
@@ -674,16 +661,11 @@ export default function AuctionsPage() {
       </main>
 
       {/* Footer */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="relative z-10 px-4 pb-6 pt-2"
-      >
-        <p className="text-center text-white/20 text-xs">
+      <footer className="px-4 pb-6 pt-2 border-t border-[#1e1e21]">
+        <p className="text-center text-[#3f3f46] text-xs">
           CollectHub &middot; Mock Auction Data &middot; For Development Only
         </p>
-      </motion.footer>
+      </footer>
     </div>
   );
 }

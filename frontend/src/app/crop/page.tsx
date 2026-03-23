@@ -82,23 +82,18 @@ export default function CropPage() {
   const displayUrl = adjustedUrl ?? result?.cropped_image ?? null;
 
   return (
-    <div className="bg-landing min-h-dvh flex flex-col noise-overlay vignette relative overflow-hidden">
-      {/* Animated glow blobs */}
-      <div className="glow-blob glow-blob-blue" />
-      <div className="glow-blob glow-blob-red" />
-      <div className="glow-blob glow-blob-blue-bottom" />
-
+    <div className="min-h-dvh flex flex-col bg-[#09090b]">
       {/* Header */}
       <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative z-10 px-4 pt-6 pb-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="px-4 pt-6 pb-4 border-b border-[#1e1e21]"
       >
         <div className="max-w-2xl mx-auto">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm mb-3 group"
+            className="inline-flex items-center gap-1.5 text-[#52525b] hover:text-[#a1a1aa] transition-colors text-sm mb-3 group"
           >
             <svg
               width="14"
@@ -109,7 +104,7 @@ export default function CropPage() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="group-hover:-translate-x-0.5 transition-transform duration-200"
+              className="group-hover:-translate-x-0.5 transition-transform duration-150"
             >
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -117,13 +112,10 @@ export default function CropPage() {
           </Link>
           <div className="flex items-end justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-                <span className="text-white">Crop</span>{" "}
-                <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
-                  Tool
-                </span>
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#fafafa]">
+                Crop Tool
               </h1>
-              <p className="text-white/40 text-sm mt-1">
+              <p className="text-[#52525b] text-sm mt-1">
                 Auto-crop &amp; orient your baseball cards
               </p>
             </div>
@@ -132,31 +124,26 @@ export default function CropPage() {
       </motion.header>
 
       {/* Step indicator */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.15 }}
-        className="relative z-10 px-4 py-3"
-      >
+      <div className="px-4 py-3 border-b border-[#1e1e21]">
         <div className="max-w-2xl mx-auto">
           <StepIndicator currentStep={currentStep} />
         </div>
-      </motion.div>
+      </div>
 
       {/* Main content */}
-      <main className="relative z-10 flex-1 px-4 py-4 flex flex-col">
+      <main className="flex-1 px-4 py-6 flex flex-col">
         <div className="max-w-2xl mx-auto w-full flex flex-col gap-4 flex-1">
           <AnimatePresence mode="wait">
             {/* Upload area */}
             {viewMode === "upload" && (
               <motion.div
                 key="upload"
-                initial={{ opacity: 0, y: 20, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.97 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.25 }}
               >
-                <div className="glass-hero rounded-2xl p-5">
+                <div className="surface rounded-lg p-5">
                   <UploadArea
                     onFileSelected={handleFileSelected}
                     disabled={isProcessing}
@@ -169,24 +156,24 @@ export default function CropPage() {
             {viewMode === "processing" && (
               <motion.div
                 key="processing"
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.25 }}
                 className="space-y-4"
               >
                 <ProcessingStatus state={state} error={error} />
                 {originalUrl && (
-                  <div className="glass-hero rounded-2xl p-3">
+                  <div className="surface rounded-lg p-3">
                     <div className="relative">
                       <img
                         src={originalUrl}
                         alt="Original card"
-                        className={`w-full h-auto rounded-xl max-h-[50vh] object-contain mx-auto block ${
+                        className={`w-full h-auto rounded-md max-h-[50vh] object-contain mx-auto block ${
                           isProcessing ? "processing-image" : ""
                         }`}
                       />
-                      <span className="absolute top-3 left-3 glass-strong text-xs font-medium px-2.5 py-1 rounded-lg text-white/70">
+                      <span className="absolute top-3 left-3 bg-[#1c1c1f] border border-[#27272a] text-xs font-medium px-2.5 py-1 rounded-md text-[#71717a]">
                         Original
                       </span>
                     </div>
@@ -196,7 +183,7 @@ export default function CropPage() {
                   <div className="flex gap-3">
                     <button
                       onClick={handleReset}
-                      className="flex-1 py-3 rounded-xl font-semibold text-sm glass-hero hover:bg-white/10 active:scale-[0.97] transition-all duration-300 text-white/80"
+                      className="flex-1 py-3 rounded-lg font-medium text-sm btn-secondary active:scale-[0.98] transition-all duration-150"
                     >
                       Try Again
                     </button>
@@ -209,10 +196,10 @@ export default function CropPage() {
             {viewMode === "result" && originalUrl && displayUrl && (
               <motion.div
                 key="result"
-                initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
                 className="space-y-4"
               >
                 <ProcessingStatus state={state} error={error} />
@@ -235,10 +222,10 @@ export default function CropPage() {
             {viewMode === "adjust" && displayUrl && (
               <motion.div
                 key="adjust"
-                initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
               >
                 <CropAdjuster
                   imageUrl={displayUrl}
@@ -254,16 +241,11 @@ export default function CropPage() {
       </main>
 
       {/* Footer */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="relative z-10 px-4 pb-6 pt-2"
-      >
-        <p className="text-center text-white/20 text-xs">
+      <footer className="px-4 pb-6 pt-2 border-t border-[#1e1e21]">
+        <p className="text-center text-[#3f3f46] text-xs">
           CollectHub &middot; Baseball Card Tools
         </p>
-      </motion.footer>
+      </footer>
     </div>
   );
 }

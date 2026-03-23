@@ -37,7 +37,6 @@ export default function ActionBar({
     setUploadingTo(service);
     setUploadSuccess(null);
 
-    // Simulate upload delay (will be replaced with real API calls)
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setUploadingTo(null);
@@ -46,20 +45,20 @@ export default function ActionBar({
   };
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-2">
       {/* Primary actions */}
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <button
           onClick={handleDownload}
           disabled={!hasResult}
           className={`
-            flex-1 py-3.5 rounded-xl font-semibold text-sm
-            transition-all duration-300
+            flex-1 py-3 rounded-lg font-medium text-sm
+            transition-all duration-150
             flex items-center justify-center gap-2
             ${
               hasResult
-                ? "btn-cta active:scale-[0.97]"
-                : "glass text-white/20 cursor-not-allowed"
+                ? "btn-cta active:scale-[0.98]"
+                : "bg-[#141416] text-[#3f3f46] cursor-not-allowed border border-[#1e1e21]"
             }
           `}
         >
@@ -74,13 +73,13 @@ export default function ActionBar({
             onClick={onAdjustCrop}
             disabled={!hasResult}
             className={`
-              flex-1 py-3.5 rounded-xl font-semibold text-sm
-              transition-all duration-300
+              flex-1 py-3 rounded-lg font-medium text-sm
+              transition-all duration-150
               flex items-center justify-center gap-2
               ${
                 hasResult
-                  ? "glass-hero hover:bg-white/10 active:scale-[0.97] text-white/80"
-                  : "glass text-white/20 cursor-not-allowed"
+                  ? "btn-secondary active:scale-[0.98]"
+                  : "bg-[#141416] text-[#3f3f46] cursor-not-allowed border border-[#1e1e21]"
               }
             `}
           >
@@ -92,7 +91,7 @@ export default function ActionBar({
         ) : (
           <button
             onClick={onReset}
-            className="flex-1 py-3.5 rounded-xl font-semibold text-sm glass-hero hover:bg-white/10 active:scale-[0.97] transition-all duration-300 text-white/80 flex items-center justify-center gap-2"
+            className="flex-1 py-3 rounded-lg font-medium text-sm btn-secondary active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.992 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
@@ -103,18 +102,18 @@ export default function ActionBar({
       </div>
 
       {/* Cloud upload actions */}
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <button
           onClick={() => handleCloudUpload("google-photos")}
           disabled={!hasResult || uploadingTo === "google-photos"}
           className={`
-            flex-1 py-3 rounded-xl text-sm
-            transition-all duration-300
+            flex-1 py-2.5 rounded-lg text-sm
+            transition-all duration-150
             flex items-center justify-center gap-1.5
             ${
               hasResult
-                ? "glass-hero hover:bg-white/10 active:scale-[0.97] text-white/60 hover:text-white/80"
-                : "glass text-white/20 cursor-not-allowed opacity-50"
+                ? "btn-secondary active:scale-[0.98]"
+                : "bg-[#141416] text-[#3f3f46] cursor-not-allowed opacity-50 border border-[#1e1e21]"
             }
           `}
         >
@@ -127,25 +126,25 @@ export default function ActionBar({
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-1.5"
               >
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white/80 rounded-full spinner" />
+                <div className="w-3.5 h-3.5 border-2 border-[#3f3f46] border-t-[#a1a1aa] rounded-full spinner" />
                 <span>Uploading...</span>
               </motion.div>
             ) : uploadSuccess === "google-photos" ? (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-1.5 text-emerald-400"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
                 Uploaded!
               </motion.div>
             ) : (
               <motion.div key="default" className="flex items-center gap-1.5">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
                 Google Photos
@@ -158,13 +157,13 @@ export default function ActionBar({
           onClick={() => handleCloudUpload("gcs")}
           disabled={!hasResult || uploadingTo === "gcs"}
           className={`
-            flex-1 py-3 rounded-xl text-sm
-            transition-all duration-300
+            flex-1 py-2.5 rounded-lg text-sm
+            transition-all duration-150
             flex items-center justify-center gap-1.5
             ${
               hasResult
-                ? "glass-hero hover:bg-white/10 active:scale-[0.97] text-white/60 hover:text-white/80"
-                : "glass text-white/20 cursor-not-allowed opacity-50"
+                ? "btn-secondary active:scale-[0.98]"
+                : "bg-[#141416] text-[#3f3f46] cursor-not-allowed opacity-50 border border-[#1e1e21]"
             }
           `}
         >
@@ -177,25 +176,25 @@ export default function ActionBar({
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-1.5"
               >
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white/80 rounded-full spinner" />
+                <div className="w-3.5 h-3.5 border-2 border-[#3f3f46] border-t-[#a1a1aa] rounded-full spinner" />
                 <span>Uploading...</span>
               </motion.div>
             ) : uploadSuccess === "gcs" ? (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-1.5 text-emerald-400"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
                 Uploaded!
               </motion.div>
             ) : (
               <motion.div key="default" className="flex items-center gap-1.5">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.82-4 4.02-4h.47C7.31 7.55 9.46 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z" />
                 </svg>
                 Google Cloud
@@ -209,7 +208,7 @@ export default function ActionBar({
       {!showAdjust && (
         <button
           onClick={onReset}
-          className="w-full py-2.5 rounded-xl text-xs text-white/30 hover:text-white/50 hover:bg-white/5 transition-all duration-300"
+          className="w-full py-2 rounded-lg text-xs text-[#3f3f46] hover:text-[#71717a] hover:bg-[#141416] transition-all duration-150"
         >
           Start Over
         </button>

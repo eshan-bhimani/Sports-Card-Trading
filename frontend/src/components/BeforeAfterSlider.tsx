@@ -59,27 +59,27 @@ export default function BeforeAfterSlider({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="glass-hero rounded-2xl p-3 relative overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="surface rounded-lg p-3 relative overflow-hidden"
     >
       {/* Labels */}
-      <div className="flex items-center justify-between px-2 mb-3">
-        <span className="text-xs font-medium text-white/50 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-white/30" />
+      <div className="flex items-center justify-between px-1 mb-3">
+        <span className="text-xs font-medium text-[#52525b] flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#3f3f46]" />
           Original
         </span>
         <span className="text-xs font-medium text-emerald-400/80 flex items-center gap-1.5">
           Processed
-          <span className="w-2 h-2 rounded-full bg-emerald-400/50" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/50" />
         </span>
       </div>
 
       {/* Comparison container */}
       <div
         ref={containerRef}
-        className="relative rounded-xl overflow-hidden cursor-col-resize select-none"
+        className="relative rounded-md overflow-hidden cursor-col-resize select-none"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -112,12 +112,11 @@ export default function BeforeAfterSlider({
 
         {/* Slider line */}
         <div
-          className="absolute top-0 bottom-0 w-0.5 bg-white/80 z-10 pointer-events-none"
+          className="absolute top-0 bottom-0 w-0.5 bg-[#fafafa]/80 z-10 pointer-events-none"
           style={{ left: `${sliderPosition}%`, transform: "translateX(-50%)" }}
         >
-          {/* Slider handle */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full slider-handle flex items-center justify-center">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full slider-handle flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8 6l-4 6 4 6" />
               <path d="M16 6l4 6-4 6" />
             </svg>
@@ -128,17 +127,17 @@ export default function BeforeAfterSlider({
       {/* Confidence badge */}
       {confidence !== undefined && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2 }}
           className="mt-3 flex items-center justify-center"
         >
-          <div className="confidence-badge flex items-center gap-2 px-4 py-2 rounded-full">
-            <div className="relative w-16 h-1.5 rounded-full bg-white/10 overflow-hidden">
+          <div className="confidence-badge flex items-center gap-2 px-3 py-1.5 rounded-md">
+            <div className="relative w-14 h-1 rounded-full bg-[#1e1e21] overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${confidence * 100}%` }}
-                transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+                transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
                 className={`absolute inset-y-0 left-0 rounded-full ${
                   confidence >= 0.8
                     ? "bg-emerald-400"
@@ -148,7 +147,7 @@ export default function BeforeAfterSlider({
                 }`}
               />
             </div>
-            <span className={`text-xs font-semibold ${
+            <span className={`text-xs font-medium ${
               confidence >= 0.8
                 ? "text-emerald-400"
                 : confidence >= 0.5
