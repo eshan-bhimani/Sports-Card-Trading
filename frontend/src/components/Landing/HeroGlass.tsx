@@ -19,7 +19,15 @@ export default function HeroGlass() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight"
         >
-          <span className="text-white">Collect</span>
+          <span
+            className="bg-clip-text text-transparent"
+            style={{
+              backgroundImage:
+                "linear-gradient(135deg, #8a96a8 0%, #dde3ec 35%, #f0f3f7 50%, #dde3ec 65%, #8a96a8 100%)",
+            }}
+          >
+            Collect
+          </span>
           <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
             Hub
           </span>
@@ -79,11 +87,21 @@ export default function HeroGlass() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.8 }}
-          className="mt-8 flex items-center justify-center gap-3 text-white/25 text-xs"
+          className="mt-8 flex items-center justify-center gap-3 text-xs"
+          style={{ color: "#9aa4b2" }}
         >
-          <span className="w-8 h-px bg-white/15" />
-          <span>PSA &middot; Fanatics &middot; Vault</span>
-          <span className="w-8 h-px bg-white/15" />
+          {/* Silver shimmer rules — nod to PSA slab metallic borders */}
+          <span
+            className="w-10 h-px"
+            style={{ background: "linear-gradient(to right, transparent, #b0bac8, transparent)" }}
+          />
+          <span className="tracking-widest uppercase text-[10px] font-medium" style={{ color: "#8a96a6" }}>
+            PSA &middot; Fanatics &middot; Vault
+          </span>
+          <span
+            className="w-10 h-px"
+            style={{ background: "linear-gradient(to right, transparent, #b0bac8, transparent)" }}
+          />
         </motion.div>
       </motion.div>
     </section>

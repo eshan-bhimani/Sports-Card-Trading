@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<AuthError | null> => {
-    const result = signIn(email, password);
+    const result = await signIn(email, password);
     if ("error" in result) return result.error;
     setUser(result.user);
     return null;
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (name: string, email: string, password: string): Promise<AuthError | null> => {
-      const result = signUp(name, email, password);
+      const result = await signUp(name, email, password);
       if ("error" in result) return result.error;
       setUser(result.user);
       return null;

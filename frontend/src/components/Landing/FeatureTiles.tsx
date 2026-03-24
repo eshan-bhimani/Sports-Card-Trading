@@ -79,6 +79,18 @@ export default function FeatureTiles() {
           transition={{ duration: 0.5 }}
           className="text-center mb-8"
         >
+          {/* Silver rule — memorabilia trophy/slab accent */}
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <span
+              className="h-px w-6"
+              style={{ background: "linear-gradient(to right, transparent, #a0aab8)" }}
+            />
+            <span className="w-1 h-1 rounded-full" style={{ background: "#8a96a6" }} />
+            <span
+              className="h-px w-6"
+              style={{ background: "linear-gradient(to left, transparent, #a0aab8)" }}
+            />
+          </div>
           <h2 className="text-lg sm:text-xl font-bold text-white/90">
             Everything You Need
           </h2>

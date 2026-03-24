@@ -10,98 +10,97 @@ export type AuthError =
   | "EMAIL_IN_USE"
   | "USER_NOT_FOUND"
   | "WRONG_PASSWORD"
-  | "INVALID_INPUT";
+  | "INVALID_INPUT"
+  | "SERVER_ERROR";
 
-// ─── Storage keys ────────────────────────────────────────────────────────────
+// ─── Config ───────────────────────────────────────────────────────────────────
 
-const USERS_KEY    = "ch_users";
-const SESSION_KEY  = "ch_session";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-interface StoredUser extends User {
-  passwordHash: string;
+const TOKEN_KEY   = "ch_token";
+const SESSION_KEY = "ch_session";
+
+// ─── Storage helpers ──────────────────────────────────────────────────────────
+
+function saveSession(user: User, token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function getUsers(): StoredUser[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(USERS_KEY) ?? "[]");
-  } catch {
-    return [];
-  }
+export function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
 }
-
-function saveUsers(users: StoredUser[]): void {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-// Simple deterministic hash — not cryptographic, only for local dev scaffold.
-// Replace with a real auth backend before production.
-function hashPassword(password: string): string {
-  let h = 0;
-  for (let i = 0; i < password.length; i++) {
-    h = (Math.imul(31, h) + password.charCodeAt(i)) | 0;
-  }
-  return h.toString(16);
-}
-
-// ─── Public API ──────────────────────────────────────────────────────────────
 
 export function getSession(): User | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     return raw ? (JSON.parse(raw) as User) : null;
   } catch {
     return null;
   }
 }
 
-export function signUp(
+// ─── API helpers ──────────────────────────────────────────────────────────────
+
+async function post<T>(path: string, body: object): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
+    throw { status: res.status, detail: data.detail ?? "Unknown error" };
+  }
+  return res.json() as Promise<T>;
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+export async function signUp(
   name: string,
   email: string,
   password: string
-): { user: User } | { error: AuthError } {
-  const users = getUsers();
-  const normalized = email.trim().toLowerCase();
-
-  if (!name.trim() || !normalized || !password) {
-    return { error: "INVALID_INPUT" };
+): Promise<{ user: User } | { error: AuthError }> {
+  if (!name.trim() || !email.trim() || !password) return { error: "INVALID_INPUT" };
+  try {
+    const data = await post<{ access_token: string; user: User }>(
+      "/api/auth/register",
+      { name, email, password }
+    );
+    saveSession(data.user, data.access_token);
+    return { user: data.user };
+  } catch (err: unknown) {
+    const e = err as { status?: number };
+    if (e.status === 409) return { error: "EMAIL_IN_USE" };
+    if (e.status === 422) return { error: "INVALID_INPUT" };
+    return { error: "SERVER_ERROR" };
   }
-  if (users.some((u) => u.email === normalized)) {
-    return { error: "EMAIL_IN_USE" };
-  }
-
-  const user: StoredUser = {
-    id: crypto.randomUUID(),
-    name: name.trim(),
-    email: normalized,
-    passwordHash: hashPassword(password),
-  };
-
-  saveUsers([...users, user]);
-  const session: User = { id: user.id, name: user.name, email: user.email };
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  return { user: session };
 }
 
-export function signIn(
+export async function signIn(
   email: string,
   password: string
-): { user: User } | { error: AuthError } {
-  const users = getUsers();
-  const normalized = email.trim().toLowerCase();
-  const found = users.find((u) => u.email === normalized);
-
-  if (!found) return { error: "USER_NOT_FOUND" };
-  if (found.passwordHash !== hashPassword(password)) return { error: "WRONG_PASSWORD" };
-
-  const session: User = { id: found.id, name: found.name, email: found.email };
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  return { user: session };
+): Promise<{ user: User } | { error: AuthError }> {
+  try {
+    const data = await post<{ access_token: string; user: User }>(
+      "/api/auth/login",
+      { email, password }
+    );
+    saveSession(data.user, data.access_token);
+    return { user: data.user };
+  } catch (err: unknown) {
+    const e = err as { status?: number };
+    if (e.status === 401) return { error: "WRONG_PASSWORD" };
+    if (e.status === 404) return { error: "USER_NOT_FOUND" };
+    return { error: "SERVER_ERROR" };
+  }
 }
 
 export function signOut(): void {
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(SESSION_KEY);
 }

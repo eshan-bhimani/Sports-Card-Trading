@@ -1,24 +1,32 @@
-# Web Framework
+# ── Web framework ─────────────────────────────────────────────────────────────
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 
-# Image Processing
+# ── Image processing ──────────────────────────────────────────────────────────
 opencv-python==4.9.0.80
 Pillow==10.2.0
-numpy==1.26.3
+# Pinned <2 — OpenCV 4.9 compiled against NumPy 1.x; NumPy 2.x causes crash
+numpy<2
 
-# Google APIs
+# ── Authentication ────────────────────────────────────────────────────────────
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# ── Database ──────────────────────────────────────────────────────────────────
+sqlalchemy==2.0.25
+
+# ── Rate limiting ─────────────────────────────────────────────────────────────
+slowapi==0.1.9
+
+# ── Google Cloud ──────────────────────────────────────────────────────────────
 google-auth==2.27.0
 google-auth-oauthlib==1.2.0
 google-auth-httplib2==0.2.0
 google-api-python-client==2.116.0
 google-cloud-storage==2.14.0
 
-# Utilities
+# ── Config & validation ───────────────────────────────────────────────────────
 python-dotenv==1.0.1
-pydantic==2.5.3
+pydantic[email]==2.5.3
 pydantic-settings==2.1.0
-
-# CORS
-fastapi-cors==0.0.6

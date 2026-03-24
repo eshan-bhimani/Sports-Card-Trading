@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import HeroGlass from "@/components/Landing/HeroGlass";
+import BaseballFieldBg from "@/components/Landing/BaseballFieldBg";
 import CardShowcaseSlider from "@/components/Landing/CardShowcaseSlider";
 import FeatureTiles from "@/components/Landing/FeatureTiles";
 import CTASection from "@/components/Landing/CTASection";
@@ -10,6 +11,9 @@ import CTASection from "@/components/Landing/CTASection";
 export default function Home() {
   return (
     <div className="bg-landing min-h-dvh noise-overlay vignette">
+      {/* Baseball field + crowd — inline SVG, sits behind all content */}
+      <BaseballFieldBg />
+
       {/* Haze depth layers — soft environmental fog */}
       <div className="haze-upper" />
       <div className="haze-mid" />
@@ -47,6 +51,17 @@ export default function Home() {
           className="max-w-4xl mx-auto"
         >
           <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <span
+                className="h-px w-6"
+                style={{ background: "linear-gradient(to right, transparent, #a0aab8)" }}
+              />
+              <span className="w-1 h-1 rounded-full" style={{ background: "#8a96a6" }} />
+              <span
+                className="h-px w-6"
+                style={{ background: "linear-gradient(to left, transparent, #a0aab8)" }}
+              />
+            </div>
             <h2 className="text-lg sm:text-xl font-bold text-white/90">
               Auction Intelligence
             </h2>
@@ -131,9 +146,19 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="relative z-10 px-4 pb-8 pt-4">
-        <p className="text-center text-white/20 text-xs">
-          CollectHub &middot; Baseball Card Tools
-        </p>
+        <div className="flex items-center justify-center gap-3">
+          <span
+            className="h-px w-12"
+            style={{ background: "linear-gradient(to right, transparent, #7a8494)" }}
+          />
+          <p className="text-xs tracking-widest uppercase font-medium" style={{ color: "#6a7484" }}>
+            CollectHub &middot; Baseball Card Tools
+          </p>
+          <span
+            className="h-px w-12"
+            style={{ background: "linear-gradient(to left, transparent, #7a8494)" }}
+          />
+        </div>
       </footer>
     </div>
   );

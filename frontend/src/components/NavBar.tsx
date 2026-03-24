@@ -28,7 +28,13 @@ export default function NavBar() {
 
         {/* Brand */}
         <Link href="/" className="text-lg font-extrabold tracking-tight flex-shrink-0">
-          <span className="text-white">Collect</span>
+          <span
+            className="bg-clip-text text-transparent"
+            style={{
+              backgroundImage:
+                "linear-gradient(135deg, #8a96a8 0%, #dde3ec 35%, #f0f3f7 50%, #dde3ec 65%, #8a96a8 100%)",
+            }}
+          >Collect</span>
           <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
             Hub
           </span>
